@@ -16,7 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify": "bun run type-check && bun run lint && bun run format:check && bun run test && bun run build",
-    "prepare": "husky"
+    "prepare": "test -d .git && husky || true"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
