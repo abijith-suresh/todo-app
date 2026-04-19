@@ -8,6 +8,7 @@
         "@thisbeyond/solid-dnd": "^0.7.5",
         "date-fns": "^4.1.0",
         "fuse.js": "^7.3.0",
+        "lucide-solid": "^1.8.0",
         "nanoid": "^5.1.9",
         "solid-js": "^1.9.12",
       },
@@ -29,9 +30,9 @@
         "lint-staged": "^16.4.0",
         "prettier": "^3.8.3",
         "tailwindcss": "^4.2.2",
-        "typescript": "~6.0.2",
+        "typescript": "^6.0.3",
         "typescript-eslint": "^8.58.2",
-        "vite": "^8.0.4",
+        "vite": "^8.0.8",
         "vite-plugin-solid": "^2.11.12",
         "vitest": "^4.1.4",
       },
@@ -755,6 +756,8 @@
     "log-update": ["log-update@6.1.0", "", { "dependencies": { "ansi-escapes": "^7.0.0", "cli-cursor": "^5.0.0", "slice-ansi": "^7.1.0", "strip-ansi": "^7.1.0", "wrap-ansi": "^9.0.0" } }, "sha512-9ie8ItPR6tjY5uYJh8K/Zrv/RMZ5VOlOWvtZdEHYSTFKZfIBPQa9tOAEeAWhd+AnIneLJ22w5fjOYtoutpWq5w=="],
 
     "lru-cache": ["lru-cache@11.3.5", "", {}, "sha512-NxVFwLAnrd9i7KUBxC4DrUhmgjzOs+1Qm50D3oF1/oL+r1NpZ4gA7xvG0/zJ8evR7zIKn4vLf7qTNduWFtCrRw=="],
+
+    "lucide-solid": ["lucide-solid@1.8.0", "", { "peerDependencies": { "solid-js": "^1.4.7" } }, "sha512-C7YqtM08wVEJq0CtgvlAeh7lOImKGwheCBNJFo63mqWIvQEYYo4bI6FXtUT4X+Gf/iqHdsrEWGsG6Volmck45g=="],
 
     "lz-string": ["lz-string@1.5.0", "", { "bin": { "lz-string": "bin/bin.js" } }, "sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ=="],
 
