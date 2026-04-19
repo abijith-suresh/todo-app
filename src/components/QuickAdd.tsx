@@ -1,7 +1,9 @@
 import { type Component, createEffect, createMemo, createSignal } from "solid-js";
 
+import { formatDateLabel } from "../lib/date";
 import { getTodayIso, getTomorrowIso } from "../lib/date";
 import { useAppStore } from "../state/app-store";
+import { CircleIcon } from "./icons";
 
 interface QuickAddProps {
   inputRef?: (element: HTMLInputElement) => void;
@@ -10,9 +12,10 @@ interface QuickAddProps {
 export const QuickAdd: Component<QuickAddProps> = (props) => {
   const app = useAppStore();
   const [title, setTitle] = createSignal("");
+  const [isFocused, setIsFocused] = createSignal(false);
+
   const defaults = createMemo(() => {
     const view = app.activeView();
-
     switch (view.type) {
       case "inbox":
         return { whenDate: "", dueDate: "", projectId: null as string | null };
@@ -24,83 +27,219 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
         return { whenDate: "", dueDate: "", projectId: view.projectId };
     }
   });
+
   const [whenDate, setWhenDate] = createSignal("");
   const [dueDate, setDueDate] = createSignal("");
 
   createEffect(() => {
-    const nextDefaults = defaults();
-    setWhenDate(nextDefaults.whenDate);
-    setDueDate(nextDefaults.dueDate);
+    const next = defaults();
+    setWhenDate(next.whenDate);
+    setDueDate(next.dueDate);
   });
 
-  const submit = async (event: Event): Promise<void> => {
-    event.preventDefault();
+  // Refs for the hidden native date inputs
+  let whenInputRef: HTMLInputElement | undefined;
+  let dueInputRef: HTMLInputElement | undefined;
+  let titleInputRef: HTMLInputElement | undefined;
+
+  const submit = async (event?: Event): Promise<void> => {
+    event?.preventDefault();
     const created = await app.createTask({
       title: title(),
       whenDate: whenDate() || null,
       dueDate: dueDate() || null,
       projectId: defaults().projectId,
     });
-
-    if (!created) {
-      return;
-    }
-
+    if (!created) return;
     setTitle("");
     setWhenDate(defaults().whenDate);
     setDueDate(defaults().dueDate);
+    // Keep expanded if the user keeps typing
+  };
+
+  const collapse = (): void => {
+    setTitle("");
+    setWhenDate(defaults().whenDate);
+    setDueDate(defaults().dueDate);
+    setIsFocused(false);
+    titleInputRef?.blur();
+  };
+
+  const handleTitleKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void submit();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      collapse();
+    }
+  };
+
+  const triggerWhenPicker = (event: MouseEvent): void => {
+    event.preventDefault();
+    if (whenDate()) {
+      setWhenDate("");
+      return;
+    }
+    whenInputRef?.showPicker?.();
+    whenInputRef?.click();
+  };
+
+  const triggerDuePicker = (event: MouseEvent): void => {
+    event.preventDefault();
+    if (dueDate()) {
+      setDueDate("");
+      return;
+    }
+    dueInputRef?.showPicker?.();
+    dueInputRef?.click();
   };
 
   return (
-    <form
-      class="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/10 backdrop-blur-xl"
-      onSubmit={(event) => void submit(event)}
-    >
-      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto] lg:items-end">
-        <label class="block">
-          <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-            New task
-          </span>
-          <input
-            ref={props.inputRef}
-            value={title()}
-            onInput={(event) => setTitle(event.currentTarget.value)}
-            placeholder="What needs doing?"
-            class="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-sky-400/60"
-          />
-        </label>
-
-        <label class="block">
-          <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-            When
-          </span>
-          <input
-            type="date"
-            value={whenDate()}
-            onInput={(event) => setWhenDate(event.currentTarget.value)}
-            class="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-sky-400/60"
-          />
-        </label>
-
-        <label class="block">
-          <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-            Due
-          </span>
-          <input
-            type="date"
-            value={dueDate()}
-            onInput={(event) => setDueDate(event.currentTarget.value)}
-            class="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-sky-400/60"
-          />
-        </label>
-
-        <button
-          type="submit"
-          class="inline-flex items-center justify-center rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-400"
+    <form class="relative" onSubmit={(event) => void submit(event)}>
+      {/* ── Title row — looks like a task row ── */}
+      <div
+        class="flex items-center gap-2.5 px-0.5 py-1"
+        style={{
+          "border-bottom": isFocused()
+            ? "1px solid var(--color-border-default)"
+            : "1px solid transparent",
+          transition: "border-color 150ms ease",
+        }}
+      >
+        {/* Left glyph — hollow circle matching task-row checkbox size */}
+        <span
+          class="flex shrink-0 items-center justify-center"
+          style={{
+            width: "17px",
+            height: "17px",
+            color: "var(--color-border-default)",
+          }}
+          aria-hidden="true"
         >
-          Add task
-        </button>
+          <CircleIcon class="size-[17px]" />
+        </span>
+
+        {/* Title input */}
+        <input
+          ref={(el) => {
+            titleInputRef = el;
+            props.inputRef?.(el);
+          }}
+          value={title()}
+          onInput={(event) => setTitle(event.currentTarget.value)}
+          onFocus={() => setIsFocused(true)}
+          onKeyDown={handleTitleKeyDown}
+          placeholder="New to-do…"
+          class="min-w-0 flex-1 bg-transparent text-sm outline-none"
+          style={{ color: "var(--color-text-primary)" }}
+          autocomplete="off"
+        />
+
+        {/* Subtle Return hint — only visible when focused and has text */}
+        {isFocused() && title().trim() ? (
+          <span
+            class="shrink-0 select-none font-mono text-[10px] opacity-40"
+            style={{ color: "var(--color-text-tertiary)" }}
+          >
+            ↵ Return
+          </span>
+        ) : null}
       </div>
+
+      {/* ── Expanded chip toolbar ── */}
+      <div class={`quickadd-expand-wrapper${isFocused() ? " is-open" : ""}`}>
+        <div class="quickadd-expand-inner">
+          <div class="flex items-center gap-2 pt-2 pb-0.5 px-0.5">
+            {/* When chip */}
+            <button
+              type="button"
+              class={`quickadd-chip${whenDate() ? " has-value" : ""}`}
+              onClick={triggerWhenPicker}
+              tabIndex={isFocused() ? 0 : -1}
+              aria-label={
+                whenDate()
+                  ? `When: ${formatDateLabel(whenDate())} — click to clear`
+                  : "Set when date"
+              }
+            >
+              <span>When{whenDate() ? `: ${formatDateLabel(whenDate())}` : ""}</span>
+              {whenDate() ? (
+                <span class="chip-clear" aria-hidden="true">
+                  ×
+                </span>
+              ) : null}
+            </button>
+
+            {/* Due chip */}
+            <button
+              type="button"
+              class={`quickadd-chip${dueDate() ? " has-value" : ""}`}
+              onClick={triggerDuePicker}
+              tabIndex={isFocused() ? 0 : -1}
+              aria-label={
+                dueDate() ? `Due: ${formatDateLabel(dueDate())} — click to clear` : "Set due date"
+              }
+            >
+              <span>Due{dueDate() ? `: ${formatDateLabel(dueDate())}` : ""}</span>
+              {dueDate() ? (
+                <span class="chip-clear" aria-hidden="true">
+                  ×
+                </span>
+              ) : null}
+            </button>
+
+            {/* Escape hint */}
+            <span
+              class="ml-auto select-none font-mono text-[10px] opacity-30"
+              style={{ color: "var(--color-text-tertiary)" }}
+            >
+              Esc to cancel
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Hidden native date inputs — triggered programmatically by the chips */}
+      <input
+        ref={(el) => {
+          whenInputRef = el;
+        }}
+        type="date"
+        value={whenDate()}
+        onInput={(event) => setWhenDate(event.currentTarget.value)}
+        tabIndex={-1}
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          opacity: "0",
+          "pointer-events": "none",
+          width: "1px",
+          height: "1px",
+          top: "0",
+          left: "0",
+        }}
+      />
+      <input
+        ref={(el) => {
+          dueInputRef = el;
+        }}
+        type="date"
+        value={dueDate()}
+        onInput={(event) => setDueDate(event.currentTarget.value)}
+        tabIndex={-1}
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          opacity: "0",
+          "pointer-events": "none",
+          width: "1px",
+          height: "1px",
+          top: "0",
+          left: "0",
+        }}
+      />
     </form>
   );
 };

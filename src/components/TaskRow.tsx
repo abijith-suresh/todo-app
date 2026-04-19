@@ -5,7 +5,7 @@ import { formatDateLabel } from "../lib/date";
 import { getTaskUrgency } from "../lib/view-model";
 import { useAppStore } from "../state/app-store";
 import type { Task } from "../types";
-import { ChevronDownIcon, ChevronUpIcon, DragHandleIcon, StarIcon } from "./icons";
+import { ChevronDownIcon, ChevronUpIcon, DragHandleIcon, StarFilledIcon, StarIcon } from "./icons";
 
 interface TaskRowProps {
   task: Task;
@@ -21,9 +21,20 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const isSelected = createMemo(() => app.selectedTaskId() === props.task.id);
   const isCompleting = createMemo(() => app.completingTaskIds().includes(props.task.id));
   const urgency = createMemo(() => getTaskUrgency(props.task));
+
+  const rowBg = createMemo(() => {
+    if (isSelected()) return "var(--color-accent-subtle)";
+    if (urgency() === "overdue") return "var(--color-urgency-red-bg)";
+    if (urgency() === "due-today") return "var(--color-urgency-amber-bg)";
+    return "transparent";
+  });
+
   const style = createMemo(() => ({
     ...transformStyle(sortable.transform),
-    transition: "transform 200ms ease, opacity 200ms ease, background-color 200ms ease",
+    transition: "transform 200ms ease, opacity 200ms ease, background-color 150ms ease",
+    "background-color": rowBg(),
+    "border-left": isSelected() ? "3px solid var(--color-accent)" : "3px solid transparent",
+    "padding-left": isSelected() ? "calc(0.75rem - 3px)" : "0.75rem",
   }));
 
   return (
@@ -36,9 +47,8 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
       aria-label={props.task.title}
       classList={{
         "task-row-completing": isCompleting(),
-        "border-emerald-400/60 bg-emerald-500/10": isSelected(),
       }}
-      class="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-left shadow-sm outline-none ring-0 transition hover:border-white/20 hover:bg-white/8 focus:border-sky-400/60 focus:bg-sky-500/10 dark:border-white/10 dark:bg-white/5"
+      class="group flex items-center gap-2.5 border-b py-2.5 pr-2 text-left outline-none transition-colors"
       onClick={() => app.openTask(props.task.id)}
       onKeyDown={(event) => {
         if (event.key === "Enter") {
@@ -47,99 +57,148 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         }
       }}
       onFocus={() => app.setFocusedTaskId(props.task.id)}
+      onMouseEnter={(e) => {
+        if (!isSelected()) {
+          (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.backgroundColor = rowBg();
+      }}
     >
+      {/* drag handle — hover-only */}
       <button
         type="button"
         aria-label="Drag task"
-        class="cursor-grab rounded-lg p-1 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-200 active:cursor-grabbing"
+        class="shrink-0 cursor-grab rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-40 active:cursor-grabbing"
+        style={{ color: "var(--color-text-tertiary)" }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <DragHandleIcon class="size-4" />
+        <DragHandleIcon class="size-3.5" />
       </button>
 
+      {/* custom checkbox */}
       <input
         type="checkbox"
         aria-label={`Complete ${props.task.title}`}
-        class="size-4 rounded border-white/20 bg-transparent text-emerald-400 focus:ring-emerald-400"
+        class="task-checkbox shrink-0"
         checked={false}
         onClick={(event) => event.stopPropagation()}
         onChange={() => void app.completeTask(props.task.id)}
       />
 
+      {/* title + notes */}
       <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2">
-          <span
-            classList={{
-              "line-through text-zinc-400": isCompleting(),
-            }}
-            class="truncate font-medium text-zinc-100"
-          >
-            {props.task.title}
-          </span>
-          {props.task.starred ? <span class="sr-only">Starred</span> : null}
-        </div>
+        <span
+          class="task-title-text block truncate text-sm font-medium"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          {props.task.title}
+        </span>
         {props.task.notes ? (
-          <p class="mt-1 line-clamp-1 text-sm text-zinc-400">{props.task.notes}</p>
+          <p class="mt-0.5 line-clamp-1 text-xs" style={{ color: "var(--color-text-tertiary)" }}>
+            {props.task.notes}
+          </p>
         ) : null}
       </div>
 
-      <div class="hidden items-center gap-2 md:flex">
+      {/* date chips */}
+      <div class="hidden shrink-0 items-center gap-1.5 md:flex">
         {props.task.whenDate ? (
-          <span class="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300">
-            When {formatDateLabel(props.task.whenDate)}
+          <span
+            class="rounded-full border px-2 py-0.5 font-mono text-[11px]"
+            style={{
+              "border-color": "var(--color-border-subtle)",
+              "background-color": "var(--color-bg-input)",
+              color: "var(--color-text-tertiary)",
+            }}
+          >
+            {formatDateLabel(props.task.whenDate)}
           </span>
         ) : null}
+
         {props.task.dueDate ? (
           <span
-            classList={{
-              "border-red-400/40 bg-red-500/10 text-red-200": urgency() === "overdue",
-              "border-amber-400/40 bg-amber-500/10 text-amber-100": urgency() === "due-today",
+            class="rounded-full border px-2 py-0.5 font-mono text-[11px]"
+            style={{
+              "border-color":
+                urgency() === "overdue"
+                  ? "var(--color-urgency-red)"
+                  : urgency() === "due-today"
+                    ? "var(--color-urgency-amber)"
+                    : "var(--color-border-subtle)",
+              "background-color":
+                urgency() === "overdue"
+                  ? "var(--color-urgency-red-bg)"
+                  : urgency() === "due-today"
+                    ? "var(--color-urgency-amber-bg)"
+                    : "var(--color-bg-input)",
+              color:
+                urgency() === "overdue"
+                  ? "var(--color-urgency-red)"
+                  : urgency() === "due-today"
+                    ? "var(--color-urgency-amber)"
+                    : "var(--color-text-tertiary)",
             }}
-            class="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-300"
           >
             Due {formatDateLabel(props.task.dueDate)}
           </span>
         ) : null}
       </div>
 
+      {/* star */}
       <button
         type="button"
         aria-label={props.task.starred ? "Unstar task" : "Star task"}
-        classList={{
-          "text-amber-300": props.task.starred,
+        class="shrink-0 rounded p-1 transition-colors"
+        style={{
+          color: props.task.starred ? "var(--color-star)" : "var(--color-text-tertiary)",
         }}
-        class="rounded-lg p-1 text-zinc-400 transition hover:bg-white/10 hover:text-amber-200"
+        onMouseEnter={(e) => {
+          if (!props.task.starred) {
+            (e.currentTarget as HTMLElement).style.color = "var(--color-star)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!props.task.starred) {
+            (e.currentTarget as HTMLElement).style.color = "var(--color-text-tertiary)";
+          }
+        }}
         onClick={(event) => {
           event.stopPropagation();
           void app.toggleTaskStar(props.task.id);
         }}
       >
-        <StarIcon class="size-4" />
+        {props.task.starred ? <StarFilledIcon class="size-3.5" /> : <StarIcon class="size-3.5" />}
       </button>
 
-      <div class="hidden flex-col gap-1 opacity-0 transition group-hover:opacity-100 md:flex">
+      {/* up/down reorder — hover-only */}
+      <div class="hidden flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 md:flex">
         <button
           type="button"
           aria-label="Move task up"
           disabled={!props.canMoveUp}
-          class="rounded-md p-1 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+          class="rounded p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+          style={{ color: "var(--color-text-tertiary)" }}
           onClick={(event) => {
             event.stopPropagation();
             props.onMove(-1);
           }}
         >
-          <ChevronUpIcon class="size-3.5" />
+          <ChevronUpIcon class="size-3" />
         </button>
         <button
           type="button"
           aria-label="Move task down"
           disabled={!props.canMoveDown}
-          class="rounded-md p-1 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
+          class="rounded p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+          style={{ color: "var(--color-text-tertiary)" }}
           onClick={(event) => {
             event.stopPropagation();
             props.onMove(1);
           }}
         >
-          <ChevronDownIcon class="size-3.5" />
+          <ChevronDownIcon class="size-3" />
         </button>
       </div>
     </div>

@@ -7,15 +7,15 @@ import {
   SortableProvider,
   transformStyle,
 } from "@thisbeyond/solid-dnd";
-import { type Component, createMemo, createSignal, For } from "solid-js";
+import { type Component, createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import type { JSX } from "solid-js";
 
-import { moveArrayItem, moveIdWithinOrder } from "../lib/view-model";
+import { moveArrayItem } from "../lib/view-model";
 import { useAppStore } from "../state/app-store";
 import type { AppView, Project } from "../types";
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
   DragHandleIcon,
+  FolderIcon,
   InboxIcon,
   PlusIcon,
   SearchIcon,
@@ -24,32 +24,123 @@ import {
   UpcomingIcon,
 } from "./icons";
 
+// ── Per-item icon colour tints ──────────────────────────────────────────────
+
+const NAV_ICON_COLORS: Record<string, string> = {
+  inbox: "#c2956a",
+  today: "#3370ff",
+  upcoming: "#4db8a0",
+};
+
+interface NavIconBadgeProps {
+  view: string; // "inbox" | "today" | "upcoming"
+  active: boolean;
+  children: JSX.Element;
+}
+
+const NavIconBadge: Component<NavIconBadgeProps> = (props) => {
+  const colour = createMemo(() => NAV_ICON_COLORS[props.view] ?? "var(--color-text-secondary)");
+  return (
+    <span
+      class="flex shrink-0 items-center justify-center rounded-md"
+      style={{
+        width: "22px",
+        height: "22px",
+        "background-color": props.active
+          ? `color-mix(in srgb, ${colour()} 18%, transparent)`
+          : `color-mix(in srgb, ${colour()} 10%, transparent)`,
+        color: props.active
+          ? colour()
+          : `color-mix(in srgb, ${colour()} 80%, var(--color-text-secondary))`,
+        transition: "background-color 140ms ease, color 140ms ease",
+      }}
+    >
+      {props.children}
+    </span>
+  );
+};
+
+// ── Navigation items definition ─────────────────────────────────────────────
+
 const navigationItems: Array<{
   label: string;
   view: AppView;
+  viewKey: string;
   icon: Component<{ class?: string }>;
 }> = [
-  { label: "Inbox", view: { type: "inbox" }, icon: InboxIcon },
-  { label: "Today", view: { type: "today" }, icon: TodayIcon },
-  { label: "Upcoming", view: { type: "upcoming" }, icon: UpcomingIcon },
+  { label: "Inbox", view: { type: "inbox" }, viewKey: "inbox", icon: InboxIcon },
+  { label: "Today", view: { type: "today" }, viewKey: "today", icon: TodayIcon },
+  { label: "Upcoming", view: { type: "upcoming" }, viewKey: "upcoming", icon: UpcomingIcon },
 ];
+
+// ── ProjectItem ──────────────────────────────────────────────────────────────
 
 interface ProjectItemProps {
   project: Project;
   count: number;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  onMove: (direction: -1 | 1) => void;
+  isRenaming: boolean;
+  onRenameStart: () => void;
+  onRenameCommit: (title: string) => void;
+  onRenameCancel: () => void;
 }
 
 const ProjectItem: Component<ProjectItemProps> = (props) => {
   const app = useAppStore();
   // eslint-disable-next-line solid/reactivity
   const sortable = createSortable(props.project.id);
+
+  let renameInputRef: HTMLInputElement | undefined;
+
   const isActive = createMemo(() => {
     const view = app.activeView();
     return view.type === "project" && view.projectId === props.project.id;
   });
+
+  // When rename mode is entered, focus the input
+  createEffect(() => {
+    if (props.isRenaming) {
+      // Use microtask to wait for the DOM to update
+      queueMicrotask(() => {
+        renameInputRef?.focus();
+        renameInputRef?.select();
+      });
+    }
+  });
+
+  const handleClick = (): void => {
+    if (props.isRenaming) return;
+    if (isActive()) {
+      // Second click on already-active item → enter rename mode
+      props.onRenameStart();
+    } else {
+      app.setActiveView({ type: "project", projectId: props.project.id });
+    }
+  };
+
+  const handleDoubleClick = (): void => {
+    if (!props.isRenaming) props.onRenameStart();
+  };
+
+  const handleRenameKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const value = (event.currentTarget as HTMLInputElement).value.trim();
+      props.onRenameCommit(value);
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      props.onRenameCancel();
+    }
+  };
+
+  const handleRenameBlur = (event: FocusEvent): void => {
+    const value = (event.currentTarget as HTMLInputElement).value.trim();
+    if (value) {
+      props.onRenameCommit(value);
+    } else {
+      props.onRenameCancel();
+    }
+  };
 
   return (
     <div
@@ -58,104 +149,229 @@ const ProjectItem: Component<ProjectItemProps> = (props) => {
       style={{
         ...transformStyle(sortable.transform),
         transition: "transform 200ms ease",
+        "background-color": isActive() ? "var(--color-accent-subtle)" : "transparent",
+        "border-radius": "8px",
       }}
       role="button"
       tabIndex={0}
-      classList={{
-        "border-sky-400/60 bg-sky-500/10 text-white": isActive(),
-      }}
-      class="group flex w-full items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-left text-sm text-zinc-300 transition hover:border-white/10 hover:bg-white/5 hover:text-white"
-      onClick={() => app.setActiveView({ type: "project", projectId: props.project.id })}
+      class="group flex w-full items-center gap-2 py-1.5 pl-2 pr-2 text-left text-sm outline-none cursor-pointer"
+      onClick={handleClick}
+      onDblClick={handleDoubleClick}
       onKeyDown={(event) => {
-        if (event.key === "Enter") {
+        if (event.key === "Enter" && !props.isRenaming) {
           event.preventDefault();
           app.setActiveView({ type: "project", projectId: props.project.id });
         }
       }}
+      onMouseEnter={(e) => {
+        if (!isActive()) {
+          (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive()) {
+          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+        }
+      }}
     >
-      <DragHandleIcon class="size-4 text-zinc-500" />
-      <span class="min-w-0 flex-1 truncate">{props.project.title}</span>
-      <span class="rounded-full bg-white/7 px-2 py-0.5 text-xs text-zinc-400">{props.count}</span>
-      <div class="hidden flex-col gap-1 opacity-0 transition group-hover:opacity-100 md:flex">
-        <button
-          type="button"
-          aria-label="Move project up"
-          disabled={!props.canMoveUp}
-          class="rounded-md p-1 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onMove(-1);
+      {/* Drag handle */}
+      <span
+        role="button"
+        tabIndex={-1}
+        aria-label="Drag to reorder"
+        class="shrink-0 opacity-0 group-hover:opacity-30 transition-opacity cursor-grab active:cursor-grabbing"
+        style={{ color: "var(--color-text-tertiary)" }}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <DragHandleIcon class="size-3" />
+      </span>
+
+      {/* Folder icon */}
+      <span
+        class="shrink-0"
+        style={{
+          color: isActive() ? "var(--color-accent)" : "var(--color-text-tertiary)",
+          transition: "color 140ms ease",
+        }}
+      >
+        <FolderIcon class="size-3.5" />
+      </span>
+
+      {/* Title — or rename input */}
+      <Show
+        when={props.isRenaming}
+        fallback={
+          <span
+            class="min-w-0 flex-1 truncate text-sm"
+            style={{
+              color: isActive() ? "var(--color-accent)" : "var(--color-text-secondary)",
+              transition: "color 140ms ease",
+            }}
+          >
+            {props.project.title}
+          </span>
+        }
+      >
+        <input
+          ref={(el) => {
+            renameInputRef = el;
           }}
-        >
-          <ChevronUpIcon class="size-3.5" />
-        </button>
-        <button
-          type="button"
-          aria-label="Move project down"
-          disabled={!props.canMoveDown}
-          class="rounded-md p-1 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-30"
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onMove(1);
+          type="text"
+          value={props.project.title}
+          class="min-w-0 flex-1 bg-transparent text-sm outline-none"
+          style={{
+            color: "var(--color-text-primary)",
+            "border-bottom": "1px solid var(--color-border-focus)",
+            "padding-bottom": "1px",
           }}
+          onKeyDown={handleRenameKeyDown}
+          onBlur={handleRenameBlur}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </Show>
+
+      {/* Task count badge */}
+      <Show when={!props.isRenaming}>
+        <span
+          class="shrink-0 font-mono text-[11px]"
+          style={{ color: "var(--color-text-tertiary)" }}
         >
-          <ChevronDownIcon class="size-3.5" />
-        </button>
-      </div>
+          {props.count > 0 ? props.count : ""}
+        </span>
+      </Show>
     </div>
   );
 };
 
+// ── Sidebar ──────────────────────────────────────────────────────────────────
+
 export const Sidebar: Component = () => {
   const app = useAppStore();
-  const [projectTitle, setProjectTitle] = createSignal("");
-  const projectIds = createMemo(() => app.openProjects().map((project) => project.id));
+  const [isCreating, setIsCreating] = createSignal(false);
+  const [renamingProjectId, setRenamingProjectId] = createSignal<string | null>(null);
 
-  const handleProjectSubmit = async (event: Event): Promise<void> => {
-    event.preventDefault();
-    const created = await app.createProject(projectTitle());
-    if (created) {
-      setProjectTitle("");
+  let createInputRef: HTMLInputElement | undefined;
+
+  const projectIds = createMemo(() => app.openProjects().map((p) => p.id));
+
+  // When create mode is entered, focus the input
+  const enterCreateMode = (): void => {
+    setIsCreating(true);
+    queueMicrotask(() => createInputRef?.focus());
+  };
+
+  const exitCreateMode = (): void => {
+    setIsCreating(false);
+    if (createInputRef) createInputRef.value = "";
+  };
+
+  const handleCreateKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const value = (event.currentTarget as HTMLInputElement).value.trim();
+      if (value) {
+        void app.createProject(value).then(() => exitCreateMode());
+      } else {
+        exitCreateMode();
+      }
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      exitCreateMode();
+    }
+  };
+
+  const handleCreateBlur = (event: FocusEvent): void => {
+    const value = (event.currentTarget as HTMLInputElement).value.trim();
+    if (value) {
+      void app.createProject(value).then(() => exitCreateMode());
+    } else {
+      exitCreateMode();
     }
   };
 
   const handleProjectDragEnd = async (event: DragEvent): Promise<void> => {
-    if (!event.draggable || !event.droppable) {
-      return;
-    }
-
+    if (!event.draggable || !event.droppable) return;
     const ids = projectIds();
     const fromIndex = ids.indexOf(String(event.draggable.id));
     const toIndex = ids.indexOf(String(event.droppable.id));
-
-    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
-      return;
-    }
-
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
     await app.reorderProjects(moveArrayItem(ids, fromIndex, toIndex));
   };
 
+  const startRename = (projectId: string): void => {
+    setRenamingProjectId(projectId);
+  };
+
+  const commitRename = (projectId: string, title: string): void => {
+    if (title && title !== app.openProjects().find((p) => p.id === projectId)?.title) {
+      void app.updateProject(projectId, { title });
+    }
+    setRenamingProjectId(null);
+  };
+
+  const cancelRename = (): void => {
+    setRenamingProjectId(null);
+  };
+
   return (
-    <aside class="flex h-full w-full max-w-xs flex-col border-r border-white/10 bg-black/30 px-4 py-5 backdrop-blur-xl">
-      <div class="mb-6 flex items-center justify-between gap-3">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Local-first</p>
-          <h1 class="text-lg font-semibold text-white">todo-app</h1>
-        </div>
+    <aside
+      class="flex h-full w-full flex-col py-4"
+      style={{
+        "background-color": "var(--color-bg-surface)",
+        "border-right": "1px solid var(--color-border-subtle)",
+      }}
+    >
+      {/* ── App wordmark ── */}
+      <div class="mb-3 px-4">
+        <span
+          class="text-sm font-semibold tracking-tight select-none"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Done
+        </span>
+      </div>
+
+      {/* ── Search row ── */}
+      <div class="px-2 mb-1">
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
+          class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm outline-none transition-colors"
+          style={{ color: "var(--color-text-secondary)" }}
           onClick={() => app.openCommandPalette()}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+          }}
         >
-          <SearchIcon class="size-4" />
-          <span class="hidden sm:inline">Search</span>
-          <span class="rounded-md border border-white/10 px-1.5 py-0.5 text-[11px] text-zinc-400">
-            ⌘K
+          <span
+            class="flex shrink-0 items-center justify-center rounded-md"
+            style={{
+              width: "22px",
+              height: "22px",
+              "background-color": "color-mix(in srgb, var(--color-text-tertiary) 12%, transparent)",
+              color: "var(--color-text-tertiary)",
+            }}
+          >
+            <SearchIcon class="size-3.5" />
           </span>
+          <span class="flex-1 text-left" style={{ color: "var(--color-text-secondary)" }}>
+            Search
+          </span>
+          <kbd
+            class="font-mono text-[10px] opacity-50"
+            style={{ color: "var(--color-text-tertiary)" }}
+          >
+            ⌘K
+          </kbd>
         </button>
       </div>
 
-      <nav class="space-y-1">
+      {/* ── Navigation ── */}
+      <nav class="px-2 space-y-0.5 mb-5">
         <For each={navigationItems}>
           {(item) => {
             const active = createMemo(() => app.activeView().type === item.view.type);
@@ -164,13 +380,28 @@ export const Sidebar: Component = () => {
             return (
               <button
                 type="button"
-                classList={{
-                  "border-sky-400/60 bg-sky-500/10 text-white": active(),
+                class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm font-medium outline-none transition-colors"
+                style={{
+                  "background-color": active() ? "var(--color-accent-subtle)" : "transparent",
+                  color: active() ? "var(--color-accent)" : "var(--color-text-secondary)",
+                  transition: "background-color 140ms ease, color 140ms ease",
                 }}
-                class="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm text-zinc-300 transition hover:border-white/10 hover:bg-white/5 hover:text-white"
                 onClick={() => app.setActiveView(item.view)}
+                onMouseEnter={(e) => {
+                  if (!active()) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor =
+                      "var(--color-bg-input)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!active()) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                  }
+                }}
               >
-                <Icon class="size-4" />
+                <NavIconBadge view={item.viewKey} active={active()}>
+                  <Icon class="size-3.5" />
+                </NavIconBadge>
                 <span>{item.label}</span>
               </button>
             );
@@ -178,63 +409,123 @@ export const Sidebar: Component = () => {
         </For>
       </nav>
 
-      <div class="mt-8 flex items-center justify-between">
-        <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Projects</h2>
-        <span class="text-xs text-zinc-500">{app.openProjects().length}</span>
+      {/* ── Projects section ── */}
+      <div class="flex items-center justify-between px-4 mb-1">
+        <h2
+          class="text-[10px] font-semibold uppercase tracking-widest select-none"
+          style={{ color: "var(--color-text-tertiary)" }}
+        >
+          Projects
+        </h2>
       </div>
 
-      <form
-        class="mt-3 flex items-center gap-2"
-        onSubmit={(event) => void handleProjectSubmit(event)}
-      >
-        <input
-          value={projectTitle()}
-          onInput={(event) => setProjectTitle(event.currentTarget.value)}
-          placeholder="New project"
-          class="flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-sky-400/60"
-        />
-        <button
-          type="submit"
-          class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 p-2 text-zinc-200 transition hover:bg-white/10"
-          aria-label="Create project"
-        >
-          <PlusIcon class="size-4" />
-        </button>
-      </form>
-
-      <div class="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+      {/* Project list */}
+      <div class="min-h-0 flex-1 overflow-y-auto px-2">
         <DragDropProvider collisionDetector={closestCenter} onDragEnd={handleProjectDragEnd}>
           <DragDropSensors />
           <SortableProvider ids={projectIds()}>
-            <div class="space-y-1">
+            <div class="space-y-0.5">
               <For each={app.openProjects()}>
-                {(project, index) => (
+                {(project) => (
                   <ProjectItem
                     project={project}
                     count={app.projectCountMap().get(project.id) ?? 0}
-                    canMoveUp={index() > 0}
-                    canMoveDown={index() < app.openProjects().length - 1}
-                    onMove={(direction) =>
-                      void app.reorderProjects(
-                        moveIdWithinOrder(projectIds(), project.id, direction)
-                      )
-                    }
+                    isRenaming={renamingProjectId() === project.id}
+                    onRenameStart={() => startRename(project.id)}
+                    onRenameCommit={(title) => commitRename(project.id, title)}
+                    onRenameCancel={cancelRename}
                   />
                 )}
               </For>
             </div>
           </SortableProvider>
         </DragDropProvider>
+
+        {/* New Project ghost row / inline create input */}
+        <div class="mt-1">
+          <Show
+            when={isCreating()}
+            fallback={
+              <button
+                type="button"
+                class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors outline-none"
+                style={{
+                  color: "var(--color-text-tertiary)",
+                  opacity: "0.6",
+                }}
+                onClick={enterCreateMode}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.opacity = "1";
+                  (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.opacity = "0.6";
+                  (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                }}
+              >
+                <PlusIcon class="size-3.5 shrink-0" />
+                <span>New Project</span>
+              </button>
+            }
+          >
+            <div
+              class="flex items-center gap-2 rounded-lg px-2 py-1.5"
+              style={{
+                "background-color": "var(--color-bg-input)",
+                border: "1px solid var(--color-border-focus)",
+              }}
+            >
+              <span style={{ color: "var(--color-text-tertiary)" }}>
+                <FolderIcon class="size-3.5 shrink-0" />
+              </span>
+              <input
+                ref={(el) => {
+                  createInputRef = el;
+                }}
+                type="text"
+                placeholder="Project name…"
+                class="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                style={{ color: "var(--color-text-primary)" }}
+                onKeyDown={handleCreateKeyDown}
+                onBlur={handleCreateBlur}
+              />
+            </div>
+          </Show>
+        </div>
       </div>
 
-      <button
-        type="button"
-        class="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-zinc-300 transition hover:bg-white/10 hover:text-white"
-        onClick={() => app.openSettings()}
-      >
-        <SettingsIcon class="size-4" />
-        <span>Settings</span>
-      </button>
+      {/* ── Settings ── */}
+      <div class="mt-2 px-2">
+        <button
+          type="button"
+          class="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors outline-none"
+          style={{
+            color: "var(--color-text-tertiary)",
+            opacity: "0.7",
+          }}
+          onClick={() => app.openSettings()}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
+            (e.currentTarget as HTMLElement).style.opacity = "1";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+            (e.currentTarget as HTMLElement).style.opacity = "0.7";
+          }}
+        >
+          <span
+            class="flex shrink-0 items-center justify-center rounded-md"
+            style={{
+              width: "22px",
+              height: "22px",
+              "background-color": "color-mix(in srgb, var(--color-text-tertiary) 10%, transparent)",
+            }}
+          >
+            <SettingsIcon class="size-3.5" />
+          </span>
+          <span>Settings</span>
+        </button>
+      </div>
     </aside>
   );
 };
