@@ -6,7 +6,7 @@ import { QuickAdd } from "./components/QuickAdd";
 import { SettingsModal } from "./components/SettingsModal";
 import { Sidebar } from "./components/Sidebar";
 import { SortableTaskList } from "./components/SortableTaskList";
-import { CloseIcon, TrashIcon } from "./components/icons";
+import { CheckIcon, CloseIcon, TrashIcon } from "./components/icons";
 import { getEmptyStateMessage, getProjectTasks, getViewTitle } from "./lib/view-model";
 import { useAppStore } from "./state/app-store";
 
@@ -177,28 +177,50 @@ function App() {
 
                 <Show when={app.activeView().type === "project" && app.activeProject()}>
                   {(projectAccessor) => (
-                    <div class="flex flex-wrap gap-2 pt-1">
+                    <div class="flex items-center gap-1 pt-1">
+                      {/* Complete project */}
                       <button
                         type="button"
-                        class="rounded-lg px-3 py-1.5 text-sm font-medium text-white transition hover:opacity-90"
-                        style={{ "background-color": "var(--color-success)" }}
-                        onClick={() => void app.completeProject(projectAccessor().id)}
-                      >
-                        Complete project
-                      </button>
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+                        aria-label="Complete project"
+                        title="Complete project"
+                        class="flex size-7 items-center justify-center rounded-lg transition-colors"
                         style={{
-                          "border-color": "var(--color-urgency-red)",
-                          color: "var(--color-urgency-red)",
+                          color: "var(--color-text-tertiary)",
                           "background-color": "transparent",
                         }}
                         onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.color = "var(--color-success)";
+                          (e.currentTarget as HTMLElement).style.backgroundColor =
+                            "color-mix(in srgb, var(--color-success) 12%, transparent)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.color =
+                            "var(--color-text-tertiary)";
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                        }}
+                        onClick={() => void app.completeProject(projectAccessor().id)}
+                      >
+                        <CheckIcon class="size-4" />
+                      </button>
+
+                      {/* Delete project */}
+                      <button
+                        type="button"
+                        aria-label="Delete project"
+                        title="Delete project"
+                        class="flex size-7 items-center justify-center rounded-lg transition-colors"
+                        style={{
+                          color: "var(--color-text-tertiary)",
+                          "background-color": "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.color = "var(--color-urgency-red)";
                           (e.currentTarget as HTMLElement).style.backgroundColor =
                             "var(--color-urgency-red-bg)";
                         }}
                         onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.color =
+                            "var(--color-text-tertiary)";
                           (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
                         }}
                         onClick={() => {
@@ -211,8 +233,7 @@ function App() {
                           }
                         }}
                       >
-                        <TrashIcon class="size-3.5" />
-                        <span>Delete</span>
+                        <TrashIcon class="size-4" />
                       </button>
                     </div>
                   )}
