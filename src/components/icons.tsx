@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CalendarRange,
   Check,
+  ChevronDown,
   Circle,
   Flag,
   Folder,
@@ -15,10 +16,11 @@ import {
   Trash2,
   X,
 } from "lucide-solid";
-import type { Component } from "solid-js";
+import type { Component, JSX } from "solid-js";
 
 interface IconProps {
   class?: string;
+  style?: JSX.CSSProperties | string;
 }
 
 export const InboxIcon: Component<IconProps> = (props) => <Inbox {...props} />;
@@ -46,3 +48,4 @@ export const TrashIcon: Component<IconProps> = (props) => <Trash2 {...props} />;
 export const CalendarClockIcon: Component<IconProps> = (props) => <CalendarClock {...props} />;
 export const FlagIcon: Component<IconProps> = (props) => <Flag {...props} />;
 export const CalendarCheck2Icon: Component<IconProps> = (props) => <CalendarCheck2 {...props} />;
+export const ChevronDownIcon: Component<IconProps> = (props) => <ChevronDown {...props} />;
