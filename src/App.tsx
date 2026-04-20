@@ -198,7 +198,7 @@ function App() {
                     {(projectAccessor) => (
                       <input
                         type="checkbox"
-                        class="task-checkbox mt-[3px] shrink-0"
+                        class="task-checkbox mt-[5px] shrink-0"
                         style={{ width: "20px", height: "20px" }}
                         checked={false}
                         onChange={() => void app.completeProject(projectAccessor().id)}
@@ -271,17 +271,8 @@ function App() {
                   </p>
                 }
               >
-                <Show
-                  when={activeCount() > 0}
-                  fallback={
-                    <div
-                      class="flex min-h-48 items-center justify-center py-12 text-center text-sm"
-                      style={{ color: "var(--color-text-tertiary)" }}
-                    >
-                      {getEmptyStateMessage(app.activeView())}
-                    </div>
-                  }
-                >
+                {/* Active task list — only when there are tasks */}
+                <Show when={activeCount() > 0}>
                   <Switch>
                     <Match when={app.activeView().type === "today"}>
                       <div class="space-y-8">
@@ -328,8 +319,20 @@ function App() {
                   </Switch>
                 </Show>
 
-                {/* Completed tasks ghost section */}
-                <Show when={app.completedViewTasks().length > 0}>
+                {/* Empty state — separate Show so it animates in independently */}
+                <Show when={activeCount() === 0}>
+                  <div
+                    class="empty-state-message flex min-h-48 items-center justify-center py-12 text-center text-sm"
+                    style={{ color: "var(--color-text-tertiary)" }}
+                  >
+                    {getEmptyStateMessage(app.activeView())}
+                  </div>
+                </Show>
+
+                {/* Completed tasks — project views only */}
+                <Show
+                  when={app.activeView().type === "project" && app.completedViewTasks().length > 0}
+                >
                   <CompletedTasksSection
                     tasks={app.completedViewTasks()}
                     show={showCompleted()}
