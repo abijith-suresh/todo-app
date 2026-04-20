@@ -5,13 +5,10 @@ import { formatDateLabel } from "../lib/date";
 import { getTaskUrgency } from "../lib/view-model";
 import { useAppStore } from "../state/app-store";
 import type { Task } from "../types";
-import { ChevronDownIcon, ChevronUpIcon, DragHandleIcon, StarFilledIcon, StarIcon } from "./icons";
+import { StarFilledIcon, StarIcon } from "./icons";
 
 interface TaskRowProps {
   task: Task;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  onMove: (direction: -1 | 1) => void;
 }
 
 export const TaskRow: Component<TaskRowProps> = (props) => {
@@ -21,6 +18,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const isSelected = createMemo(() => app.selectedTaskId() === props.task.id);
   const isCompleting = createMemo(() => app.completingTaskIds().includes(props.task.id));
   const urgency = createMemo(() => getTaskUrgency(props.task));
+  const isDragging = () => sortable.isActiveDraggable;
 
   const rowBg = createMemo(() => {
     if (isSelected()) return "var(--color-accent-subtle)";
@@ -31,8 +29,10 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
 
   const style = createMemo(() => ({
     ...transformStyle(sortable.transform),
-    transition: "transform 200ms ease, opacity 200ms ease, background-color 150ms ease",
+    transition:
+      "transform 250ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease, background-color 150ms ease",
     "background-color": rowBg(),
+    opacity: isDragging() ? 0.25 : 1,
     "border-left": isSelected() ? "3px solid var(--color-accent)" : "3px solid transparent",
     "padding-left": isSelected() ? "calc(0.75rem - 3px)" : "0.75rem",
   }));
@@ -48,7 +48,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
       classList={{
         "task-row-completing": isCompleting(),
       }}
-      class="group flex items-center gap-2.5 border-b py-2.5 pr-2 text-left outline-none transition-colors"
+      class="task-row group flex items-center gap-2.5 py-2.5 pr-2 text-left outline-none transition-colors"
       onClick={() => app.openTask(props.task.id)}
       onKeyDown={(event) => {
         if (event.key === "Enter") {
@@ -66,17 +66,6 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         (e.currentTarget as HTMLElement).style.backgroundColor = rowBg();
       }}
     >
-      {/* drag handle — hover-only */}
-      <button
-        type="button"
-        aria-label="Drag task"
-        class="shrink-0 cursor-grab rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-40 active:cursor-grabbing"
-        style={{ color: "var(--color-text-tertiary)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <DragHandleIcon class="size-3.5" />
-      </button>
-
       {/* custom checkbox */}
       <input
         type="checkbox"
@@ -150,9 +139,10 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
       <button
         type="button"
         aria-label={props.task.starred ? "Unstar task" : "Star task"}
-        class="shrink-0 rounded p-1 transition-colors"
+        class="shrink-0 rounded p-1 opacity-0 transition-[color,opacity] group-hover:opacity-100"
         style={{
           color: props.task.starred ? "var(--color-star)" : "var(--color-text-tertiary)",
+          opacity: props.task.starred ? "1" : undefined,
         }}
         onMouseEnter={(e) => {
           if (!props.task.starred) {
@@ -171,36 +161,6 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
       >
         {props.task.starred ? <StarFilledIcon class="size-3.5" /> : <StarIcon class="size-3.5" />}
       </button>
-
-      {/* up/down reorder — hover-only */}
-      <div class="hidden flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 md:flex">
-        <button
-          type="button"
-          aria-label="Move task up"
-          disabled={!props.canMoveUp}
-          class="rounded p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-          style={{ color: "var(--color-text-tertiary)" }}
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onMove(-1);
-          }}
-        >
-          <ChevronUpIcon class="size-3" />
-        </button>
-        <button
-          type="button"
-          aria-label="Move task down"
-          disabled={!props.canMoveDown}
-          class="rounded p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-          style={{ color: "var(--color-text-tertiary)" }}
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onMove(1);
-          }}
-        >
-          <ChevronDownIcon class="size-3" />
-        </button>
-      </div>
     </div>
   );
 };
