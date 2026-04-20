@@ -90,6 +90,7 @@ interface AppStore {
   completeTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   reopenTask: (taskId: string) => Promise<void>;
+  cancelComplete: (taskId: string) => void;
   reorderTasks: (orderedIds: string[]) => Promise<void>;
   createProject: (title: string) => Promise<boolean>;
   updateProject: (
@@ -144,6 +145,9 @@ export const AppProvider: ParentComponent = (props) => {
   const [completingTaskIds, setCompletingTaskIds] = createSignal<string[]>([]);
   const [confirmState, setConfirmState] = createSignal<ConfirmState | null>(null);
 
+  // Non-reactive map of taskId → pending completion timeout ID
+  const completionTimers = new Map<string, ReturnType<typeof window.setTimeout>>();
+
   const showConfirm = (state: ConfirmState): void => {
     setConfirmState(state);
   };
@@ -189,19 +193,12 @@ export const AppProvider: ParentComponent = (props) => {
   });
   const selectedTask = createMemo(() => tasks().find((task) => task.id === selectedTaskId()));
 
-  // Completed tasks relevant to the current view (for the ghost completed section)
+  // Completed tasks for the current view — project views only
   const completedViewTasks = createMemo(() => {
     const view = activeView();
+    if (view.type !== "project") return [];
     const completed = tasks().filter((t) => t.status === "completed");
-    if (view.type === "inbox") return completed.filter((t) => !t.projectId);
-    if (view.type === "project") return completed.filter((t) => t.projectId === view.projectId);
-    if (view.type === "today") {
-      const todayStr = getTodayIso();
-      return completed.filter(
-        (t) => t.completedAt != null && t.completedAt.slice(0, 10) === todayStr
-      );
-    }
-    return [];
+    return completed.filter((t) => t.projectId === view.projectId);
   });
 
   const searchableItems = createMemo(() => {
@@ -395,6 +392,15 @@ export const AppProvider: ParentComponent = (props) => {
     await updateTask(taskId, { starred: !task.starred });
   };
 
+  const cancelComplete = (taskId: string): void => {
+    const timerId = completionTimers.get(taskId);
+    if (timerId !== undefined) {
+      window.clearTimeout(timerId);
+      completionTimers.delete(taskId);
+    }
+    setCompletingTaskIds((ids) => ids.filter((id) => id !== taskId));
+  };
+
   const completeTask = async (taskId: string): Promise<void> => {
     if (completingTaskIds().includes(taskId)) {
       return;
@@ -403,7 +409,8 @@ export const AppProvider: ParentComponent = (props) => {
     setCompletingTaskIds((current) => [...current, taskId]);
 
     // eslint-disable-next-line solid/reactivity
-    window.setTimeout(async () => {
+    const timerId = window.setTimeout(async () => {
+      completionTimers.delete(taskId);
       const current = untrack(tasks);
       const existing = current.find((task) => task.id === taskId);
       if (!existing) {
@@ -433,6 +440,8 @@ export const AppProvider: ParentComponent = (props) => {
         reportError("Unable to complete task.");
       }
     }, 720);
+
+    completionTimers.set(taskId, timerId);
   };
 
   const deleteTask = async (taskId: string): Promise<void> => {
@@ -727,6 +736,7 @@ export const AppProvider: ParentComponent = (props) => {
     completeTask,
     deleteTask,
     reopenTask,
+    cancelComplete,
     reorderTasks,
     createProject,
     updateProject,
