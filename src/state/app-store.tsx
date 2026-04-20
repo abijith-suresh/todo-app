@@ -73,6 +73,7 @@ interface AppStore {
   selectedTask: Accessor<Task | undefined>;
   projectCountMap: Accessor<Map<string, number>>;
   searchResults: Accessor<SearchResultItem[]>;
+  completedViewTasks: Accessor<Task[]>;
   setActiveView: (view: AppView) => void;
   setFocusedTaskId: (taskId: string | null) => void;
   setCommandQuery: (value: string) => void;
@@ -88,6 +89,7 @@ interface AppStore {
   toggleTaskStar: (taskId: string) => Promise<void>;
   completeTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
+  reopenTask: (taskId: string) => Promise<void>;
   reorderTasks: (orderedIds: string[]) => Promise<void>;
   createProject: (title: string) => Promise<boolean>;
   updateProject: (
@@ -186,6 +188,21 @@ export const AppProvider: ParentComponent = (props) => {
       : undefined;
   });
   const selectedTask = createMemo(() => tasks().find((task) => task.id === selectedTaskId()));
+
+  // Completed tasks relevant to the current view (for the ghost completed section)
+  const completedViewTasks = createMemo(() => {
+    const view = activeView();
+    const completed = tasks().filter((t) => t.status === "completed");
+    if (view.type === "inbox") return completed.filter((t) => !t.projectId);
+    if (view.type === "project") return completed.filter((t) => t.projectId === view.projectId);
+    if (view.type === "today") {
+      const todayStr = getTodayIso();
+      return completed.filter(
+        (t) => t.completedAt != null && t.completedAt.slice(0, 10) === todayStr
+      );
+    }
+    return [];
+  });
 
   const searchableItems = createMemo(() => {
     const projectNames = new Map(projects().map((project) => [project.id, project.title]));
@@ -437,6 +454,10 @@ export const AppProvider: ParentComponent = (props) => {
     }
   };
 
+  const reopenTask = async (taskId: string): Promise<void> => {
+    await updateTask(taskId, { status: "open", completedAt: null });
+  };
+
   const reorderTasks = async (orderedIds: string[]): Promise<void> => {
     const current = tasks();
     const next = sortTasks(applySubsetOrder(current, orderedIds));
@@ -683,6 +704,7 @@ export const AppProvider: ParentComponent = (props) => {
     selectedTask,
     projectCountMap,
     searchResults,
+    completedViewTasks,
     setActiveView,
     setFocusedTaskId,
     setCommandQuery,
@@ -704,6 +726,7 @@ export const AppProvider: ParentComponent = (props) => {
     toggleTaskStar,
     completeTask,
     deleteTask,
+    reopenTask,
     reorderTasks,
     createProject,
     updateProject,
