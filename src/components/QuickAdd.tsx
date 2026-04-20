@@ -3,7 +3,7 @@ import { type Component, createEffect, createMemo, createSignal } from "solid-js
 import { formatDateLabel } from "../lib/date";
 import { getTodayIso, getTomorrowIso } from "../lib/date";
 import { useAppStore } from "../state/app-store";
-import { CircleIcon } from "./icons";
+import { CalendarClockIcon, CircleIcon, FlagIcon } from "./icons";
 
 interface QuickAddProps {
   inputRef?: (element: HTMLInputElement) => void;
@@ -41,6 +41,7 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
   let whenInputRef: HTMLInputElement | undefined;
   let dueInputRef: HTMLInputElement | undefined;
   let titleInputRef: HTMLInputElement | undefined;
+  let formRef: HTMLFormElement | undefined;
 
   const submit = async (event?: Event): Promise<void> => {
     event?.preventDefault();
@@ -54,7 +55,6 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
     setTitle("");
     setWhenDate(defaults().whenDate);
     setDueDate(defaults().dueDate);
-    // Keep expanded if the user keeps typing
   };
 
   const collapse = (): void => {
@@ -63,6 +63,14 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
     setDueDate(defaults().dueDate);
     setIsFocused(false);
     titleInputRef?.blur();
+  };
+
+  const handleFormFocusOut = (event: FocusEvent): void => {
+    const relatedTarget = event.relatedTarget as Node | null;
+    // Only collapse if focus moved entirely outside the form
+    if (formRef && !formRef.contains(relatedTarget)) {
+      setIsFocused(false);
+    }
   };
 
   const handleTitleKeyDown = (event: KeyboardEvent): void => {
@@ -97,8 +105,15 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
   };
 
   return (
-    <form class="relative" onSubmit={(event) => void submit(event)}>
-      {/* ── Title row — looks like a task row ── */}
+    <form
+      ref={(el) => {
+        formRef = el;
+      }}
+      class="relative"
+      onSubmit={(event) => void submit(event)}
+      onFocusOut={handleFormFocusOut}
+    >
+      {/* ── Title row ── */}
       <div
         class="flex items-center gap-2.5 px-0.5 py-1"
         style={{
@@ -108,7 +123,7 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
           transition: "border-color 150ms ease",
         }}
       >
-        {/* Left glyph — hollow circle matching task-row checkbox size */}
+        {/* Left glyph — hollow circle */}
         <span
           class="flex shrink-0 items-center justify-center"
           style={{
@@ -137,7 +152,7 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
           autocomplete="off"
         />
 
-        {/* Subtle Return hint — only visible when focused and has text */}
+        {/* Return hint */}
         {isFocused() && title().trim() ? (
           <span
             class="shrink-0 select-none font-mono text-[10px] opacity-40"
@@ -151,11 +166,11 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
       {/* ── Expanded chip toolbar ── */}
       <div class={`quickadd-expand-wrapper${isFocused() ? " is-open" : ""}`}>
         <div class="quickadd-expand-inner">
-          <div class="flex items-center gap-2 pt-2 pb-0.5 px-0.5">
-            {/* When chip */}
+          <div class="flex items-center gap-1.5 pt-2 pb-0.5 px-0.5">
+            {/* When button — icon-only when empty, pill with date when set */}
             <button
               type="button"
-              class={`quickadd-chip${whenDate() ? " has-value" : ""}`}
+              class={whenDate() ? "quickadd-chip has-value" : "quickadd-icon-btn"}
               onClick={triggerWhenPicker}
               tabIndex={isFocused() ? 0 : -1}
               aria-label={
@@ -164,29 +179,35 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
                   : "Set when date"
               }
             >
-              <span>When{whenDate() ? `: ${formatDateLabel(whenDate())}` : ""}</span>
+              <CalendarClockIcon class="size-3.5 shrink-0" />
               {whenDate() ? (
-                <span class="chip-clear" aria-hidden="true">
-                  ×
-                </span>
+                <>
+                  <span class="ml-1">{formatDateLabel(whenDate())}</span>
+                  <span class="chip-clear ml-1" aria-hidden="true">
+                    ×
+                  </span>
+                </>
               ) : null}
             </button>
 
-            {/* Due chip */}
+            {/* Due button — icon-only when empty, pill with date when set */}
             <button
               type="button"
-              class={`quickadd-chip${dueDate() ? " has-value" : ""}`}
+              class={dueDate() ? "quickadd-chip has-value" : "quickadd-icon-btn"}
               onClick={triggerDuePicker}
               tabIndex={isFocused() ? 0 : -1}
               aria-label={
                 dueDate() ? `Due: ${formatDateLabel(dueDate())} — click to clear` : "Set due date"
               }
             >
-              <span>Due{dueDate() ? `: ${formatDateLabel(dueDate())}` : ""}</span>
+              <FlagIcon class="size-3.5 shrink-0" />
               {dueDate() ? (
-                <span class="chip-clear" aria-hidden="true">
-                  ×
-                </span>
+                <>
+                  <span class="ml-1">{formatDateLabel(dueDate())}</span>
+                  <span class="chip-clear ml-1" aria-hidden="true">
+                    ×
+                  </span>
+                </>
               ) : null}
             </button>
 
@@ -201,7 +222,7 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
         </div>
       </div>
 
-      {/* Hidden native date inputs — triggered programmatically by the chips */}
+      {/* Hidden native date inputs */}
       <input
         ref={(el) => {
           whenInputRef = el;
