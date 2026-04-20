@@ -1,6 +1,17 @@
-import { createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  onCleanup,
+  onMount,
+  Show,
+  Switch,
+} from "solid-js";
 
 import { CommandPalette } from "./components/CommandPalette";
+import { CompletedTasksSection } from "./components/CompletedTasksSection";
 import { ConfirmModal } from "./components/ConfirmModal";
 import { DetailPanel } from "./components/DetailPanel";
 import { QuickAdd } from "./components/QuickAdd";
@@ -30,6 +41,14 @@ function App() {
   });
 
   const activeCount = createMemo(() => activeTasks().length);
+
+  // Completed tasks section
+  const [showCompleted, setShowCompleted] = createSignal(false);
+  createEffect(() => {
+    // Reset collapsed state on view change
+    void app.activeView();
+    setShowCompleted(false);
+  });
 
   let quickAddInput: HTMLInputElement | undefined;
 
@@ -308,11 +327,26 @@ function App() {
                     </Match>
                   </Switch>
                 </Show>
+
+                {/* Completed tasks ghost section */}
+                <Show when={app.completedViewTasks().length > 0}>
+                  <CompletedTasksSection
+                    tasks={app.completedViewTasks()}
+                    show={showCompleted()}
+                    onToggle={() => setShowCompleted((v) => !v)}
+                    onReopen={(taskId) => void app.reopenTask(taskId)}
+                  />
+                </Show>
               </Show>
             </div>
           </div>
         </main>
       </div>
+
+      {/* Backdrop — closes detail panel when clicking outside */}
+      <Show when={app.selectedTaskId()}>
+        <div class="detail-backdrop" onClick={() => app.closeTask()} aria-hidden="true" />
+      </Show>
 
       <DetailPanel />
       <SettingsModal />
