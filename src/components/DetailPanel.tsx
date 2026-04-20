@@ -1,18 +1,32 @@
 import { type Component, createEffect, createSignal, For, Show } from "solid-js";
 
+import { formatDateLabel } from "../lib/date";
 import { useAppStore } from "../state/app-store";
-import { CloseIcon, StarFilledIcon, StarIcon, TrashIcon } from "./icons";
+import {
+  CalendarClockIcon,
+  CloseIcon,
+  FlagIcon,
+  FolderIcon,
+  StarFilledIcon,
+  StarIcon,
+  TrashIcon,
+} from "./icons";
 
 export const DetailPanel: Component = () => {
   const app = useAppStore();
   const [title, setTitle] = createSignal("");
   const [notes, setNotes] = createSignal("");
 
+  // Sync local edit state whenever the selected task changes
   createEffect(() => {
     const task = app.selectedTask();
     setTitle(task?.title ?? "");
     setNotes(task?.notes ?? "");
   });
+
+  // Hidden native date input refs
+  let whenInputRef: HTMLInputElement | undefined;
+  let dueInputRef: HTMLInputElement | undefined;
 
   const saveTitle = async (): Promise<void> => {
     const task = app.selectedTask();
@@ -30,17 +44,24 @@ export const DetailPanel: Component = () => {
     if (notes() !== task.notes) await app.updateTask(task.id, { notes: notes() });
   };
 
-  const inputStyle = {
-    "border-color": "var(--color-border-default)",
-    "background-color": "var(--color-bg-input)",
-    color: "var(--color-text-primary)",
+  const triggerWhenPicker = (e: MouseEvent, taskId: string, currentDate: string | null): void => {
+    e.stopPropagation();
+    if (currentDate) {
+      void app.updateTask(taskId, { whenDate: null });
+      return;
+    }
+    whenInputRef?.showPicker?.();
+    whenInputRef?.click();
   };
 
-  const handleFocus = (e: FocusEvent) => {
-    (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border-focus)";
-  };
-  const handleBlur = (e: FocusEvent) => {
-    (e.currentTarget as HTMLElement).style.borderColor = "var(--color-border-default)";
+  const triggerDuePicker = (e: MouseEvent, taskId: string, currentDate: string | null): void => {
+    e.stopPropagation();
+    if (currentDate) {
+      void app.updateTask(taskId, { dueDate: null });
+      return;
+    }
+    dueInputRef?.showPicker?.();
+    dueInputRef?.click();
   };
 
   return (
@@ -61,222 +82,286 @@ export const DetailPanel: Component = () => {
 
           return (
             <>
-              {/* header */}
-              <div
-                class="flex items-center justify-between px-5 py-4"
-                style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
-              >
-                <span
-                  class="text-xs font-semibold uppercase tracking-widest"
-                  style={{ color: "var(--color-text-tertiary)" }}
-                >
-                  Task details
-                </span>
+              {/* ── Header row: close · star · delete ── */}
+              <div class="flex shrink-0 items-center justify-between px-5 pt-4 pb-2">
                 <button
                   type="button"
-                  class="rounded-lg p-1.5 transition-colors"
+                  class="flex size-7 items-center justify-center rounded-lg transition-colors"
                   style={{
                     "background-color": "var(--color-bg-input)",
                     color: "var(--color-text-secondary)",
                   }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor =
+                      "var(--color-border-default)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor =
+                      "var(--color-bg-input)";
+                  }}
                   onClick={() => app.closeTask()}
                 >
-                  <CloseIcon class="size-4" />
+                  <CloseIcon class="size-3.5" />
                 </button>
+
+                <div class="flex items-center gap-1.5">
+                  {/* Star toggle */}
+                  <button
+                    type="button"
+                    class="flex size-7 items-center justify-center rounded-lg transition-colors"
+                    style={{
+                      color: task.starred ? "var(--color-star)" : "var(--color-text-tertiary)",
+                      "background-color": task.starred
+                        ? "var(--color-urgency-amber-bg)"
+                        : "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!task.starred) {
+                        (e.currentTarget as HTMLElement).style.color = "var(--color-star)";
+                        (e.currentTarget as HTMLElement).style.backgroundColor =
+                          "var(--color-urgency-amber-bg)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!task.starred) {
+                        (e.currentTarget as HTMLElement).style.color = "var(--color-text-tertiary)";
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                      }
+                    }}
+                    onClick={() => void app.toggleTaskStar(task.id)}
+                    aria-label={task.starred ? "Unstar task" : "Star task"}
+                  >
+                    {task.starred ? (
+                      <StarFilledIcon class="size-3.5" />
+                    ) : (
+                      <StarIcon class="size-3.5" />
+                    )}
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    class="flex size-7 items-center justify-center rounded-lg transition-colors"
+                    style={{
+                      color: "var(--color-text-tertiary)",
+                      "background-color": "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.color = "var(--color-urgency-red)";
+                      (e.currentTarget as HTMLElement).style.backgroundColor =
+                        "var(--color-urgency-red-bg)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.color = "var(--color-text-tertiary)";
+                      (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                    }}
+                    onClick={() => {
+                      if (window.confirm(`Delete "${task.title}"?`)) {
+                        void app.deleteTask(task.id);
+                      }
+                    }}
+                    aria-label="Delete task"
+                  >
+                    <TrashIcon class="size-3.5" />
+                  </button>
+                </div>
               </div>
 
-              {/* body */}
-              <div class="flex-1 space-y-5 overflow-y-auto px-5 py-5">
-                {/* title */}
-                <label class="block">
-                  <span
-                    class="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest"
-                    style={{ color: "var(--color-text-tertiary)" }}
-                  >
-                    Title
-                  </span>
+              {/* ── Editable body ── */}
+              <div class="min-h-0 flex-1 overflow-y-auto">
+                {/* Title row — checkbox + editor-style input */}
+                <div class="flex items-start gap-3 px-5 pt-3 pb-2">
+                  <input
+                    type="checkbox"
+                    aria-label={`Complete ${task.title}`}
+                    class="task-checkbox mt-[3px] shrink-0"
+                    checked={false}
+                    onChange={() => {
+                      void app.completeTask(task.id);
+                    }}
+                  />
                   <input
                     value={title()}
-                    onInput={(event) => setTitle(event.currentTarget.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
+                    onInput={(e) => setTitle(e.currentTarget.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
                         void saveTitle();
                       }
                     }}
-                    class="w-full rounded-lg border px-3 py-2.5 text-base font-semibold outline-none transition"
-                    style={inputStyle}
-                    onFocus={handleFocus}
-                    onBlur={(e) => {
-                      handleBlur(e);
-                      void saveTitle();
-                    }}
+                    onBlur={() => void saveTitle()}
+                    placeholder="Task title"
+                    class="detail-title-input min-w-0 flex-1 bg-transparent text-[1.1rem] font-semibold leading-snug outline-none"
+                    style={{ color: "var(--color-text-primary)" }}
                   />
-                </label>
-
-                {/* notes */}
-                <label class="block">
-                  <span
-                    class="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest"
-                    style={{ color: "var(--color-text-tertiary)" }}
-                  >
-                    Notes
-                  </span>
-                  <textarea
-                    rows="6"
-                    value={notes()}
-                    onInput={(event) => setNotes(event.currentTarget.value)}
-                    class="w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition resize-none"
-                    style={inputStyle}
-                    placeholder="Add context, links, or follow-ups…"
-                    onFocus={handleFocus}
-                    onBlur={(e) => {
-                      handleBlur(e);
-                      void saveNotes();
-                    }}
-                  />
-                </label>
-
-                {/* when + due */}
-                <div class="grid grid-cols-2 gap-3">
-                  <label class="block">
-                    <span
-                      class="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest"
-                      style={{ color: "var(--color-text-tertiary)" }}
-                    >
-                      When
-                    </span>
-                    <p class="mb-1.5 text-[11px]" style={{ color: "var(--color-text-tertiary)" }}>
-                      Enters Today on or after this date
-                    </p>
-                    <input
-                      type="date"
-                      value={task.whenDate ?? ""}
-                      onInput={(event) =>
-                        void app.updateTask(task.id, {
-                          whenDate: event.currentTarget.value || null,
-                        })
-                      }
-                      class="w-full rounded-lg border px-3 py-2 text-sm outline-none transition"
-                      style={inputStyle}
-                      onFocus={handleFocus}
-                      onBlur={handleBlur}
-                    />
-                  </label>
-
-                  <label class="block">
-                    <span
-                      class="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest"
-                      style={{ color: "var(--color-text-tertiary)" }}
-                    >
-                      Due
-                    </span>
-                    <p class="mb-1.5 text-[11px]" style={{ color: "var(--color-text-tertiary)" }}>
-                      Hard deadline — shows urgency when near
-                    </p>
-                    <input
-                      type="date"
-                      value={task.dueDate ?? ""}
-                      onInput={(event) =>
-                        void app.updateTask(task.id, {
-                          dueDate: event.currentTarget.value || null,
-                        })
-                      }
-                      class="w-full rounded-lg border px-3 py-2 text-sm outline-none transition"
-                      style={inputStyle}
-                      onFocus={handleFocus}
-                      onBlur={handleBlur}
-                    />
-                  </label>
                 </div>
 
-                {/* project */}
-                <label class="block">
-                  <span
-                    class="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest"
-                    style={{ color: "var(--color-text-tertiary)" }}
-                  >
-                    Project
-                  </span>
-                  <select
-                    value={task.projectId ?? ""}
-                    onChange={(event) =>
-                      void app.updateTask(task.id, {
-                        projectId: event.currentTarget.value || null,
-                      })
+                {/* Notes — borderless until focused */}
+                <div class="px-5 pb-4">
+                  <textarea
+                    rows="5"
+                    value={notes()}
+                    onInput={(e) => setNotes(e.currentTarget.value)}
+                    onBlur={() => void saveNotes()}
+                    placeholder="Add notes, links, or context…"
+                    class="detail-notes-textarea w-full resize-none bg-transparent text-sm leading-relaxed outline-none"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  />
+                </div>
+
+                {/* ── Divider ── */}
+                <div
+                  class="mx-5"
+                  style={{ "border-top": "1px solid var(--color-border-subtle)" }}
+                />
+
+                {/* ── Date pills ── */}
+                <div class="px-5 py-4 flex flex-col gap-2">
+                  {/* When pill */}
+                  <button
+                    type="button"
+                    class={`detail-date-pill${task.whenDate ? " has-value" : ""}`}
+                    onClick={(e) => triggerWhenPicker(e, task.id, task.whenDate)}
+                    aria-label={
+                      task.whenDate
+                        ? `When: ${formatDateLabel(task.whenDate)} — click to clear`
+                        : "Set when date"
                     }
-                    class="w-full rounded-lg border px-3 py-2 text-sm outline-none transition"
+                  >
+                    <CalendarClockIcon class="size-3.5 shrink-0" />
+                    <span class="flex-1 text-left text-xs">
+                      {task.whenDate ? (
+                        <>
+                          <span class="mr-1 opacity-60">When</span>
+                          {formatDateLabel(task.whenDate)}
+                        </>
+                      ) : (
+                        <span class="opacity-50">When — enters Today on this date</span>
+                      )}
+                    </span>
+                    {task.whenDate && (
+                      <span class="pill-clear text-xs opacity-40" aria-hidden="true">
+                        ×
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Due pill */}
+                  <button
+                    type="button"
+                    class={`detail-date-pill${task.dueDate ? " has-value due" : ""}`}
+                    onClick={(e) => triggerDuePicker(e, task.id, task.dueDate)}
+                    aria-label={
+                      task.dueDate
+                        ? `Due: ${formatDateLabel(task.dueDate)} — click to clear`
+                        : "Set due date"
+                    }
+                  >
+                    <FlagIcon class="size-3.5 shrink-0" />
+                    <span class="flex-1 text-left text-xs">
+                      {task.dueDate ? (
+                        <>
+                          <span class="mr-1 opacity-60">Due</span>
+                          {formatDateLabel(task.dueDate)}
+                        </>
+                      ) : (
+                        <span class="opacity-50">Due — hard deadline</span>
+                      )}
+                    </span>
+                    {task.dueDate && (
+                      <span class="pill-clear text-xs opacity-40" aria-hidden="true">
+                        ×
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                {/* ── Divider ── */}
+                <div
+                  class="mx-5"
+                  style={{ "border-top": "1px solid var(--color-border-subtle)" }}
+                />
+
+                {/* ── Project ── */}
+                <div class="px-5 py-4">
+                  <div
+                    class="flex items-center gap-2 rounded-lg px-3 py-2"
                     style={{
-                      ...inputStyle,
                       "background-color": "var(--color-bg-input)",
+                      border: "1px solid var(--color-border-default)",
                     }}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
                   >
-                    <option value="">Inbox</option>
-                    <For each={app.openProjects()}>
-                      {(project) => <option value={project.id}>{project.title}</option>}
-                    </For>
-                  </select>
-                </label>
+                    <span
+                      style={{ color: "var(--color-text-tertiary)" }}
+                      class="shrink-0 flex items-center"
+                    >
+                      <FolderIcon class="size-3.5" />
+                    </span>
+                    <select
+                      value={task.projectId ?? ""}
+                      onChange={(event) =>
+                        void app.updateTask(task.id, {
+                          projectId: event.currentTarget.value || null,
+                        })
+                      }
+                      class="min-w-0 flex-1 bg-transparent text-xs outline-none"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      <option value="">Inbox</option>
+                      <For each={app.openProjects()}>
+                        {(project) => <option value={project.id}>{project.title}</option>}
+                      </For>
+                    </select>
+                  </div>
+                </div>
 
-                {/* star toggle */}
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition"
+                {/* Hidden native date inputs */}
+                <input
+                  ref={(el) => {
+                    whenInputRef = el;
+                  }}
+                  type="date"
+                  value={task.whenDate ?? ""}
+                  onInput={(event) =>
+                    void app.updateTask(task.id, {
+                      whenDate: event.currentTarget.value || null,
+                    })
+                  }
+                  tabIndex={-1}
+                  aria-hidden="true"
                   style={{
-                    "border-color": task.starred
-                      ? "var(--color-star)"
-                      : "var(--color-border-default)",
-                    "background-color": task.starred
-                      ? "var(--color-urgency-amber-bg)"
-                      : "var(--color-bg-input)",
-                    color: task.starred ? "var(--color-star)" : "var(--color-text-secondary)",
+                    position: "absolute",
+                    opacity: "0",
+                    "pointer-events": "none",
+                    width: "1px",
+                    height: "1px",
+                    top: "0",
+                    left: "0",
                   }}
-                  onClick={() => void app.toggleTaskStar(task.id)}
-                >
-                  {task.starred ? <StarFilledIcon class="size-4" /> : <StarIcon class="size-4" />}
-                  <span>{task.starred ? "Starred" : "Mark as starred"}</span>
-                </button>
-              </div>
-
-              {/* footer actions */}
-              <div
-                class="grid grid-cols-2 gap-2 px-5 py-4"
-                style={{ "border-top": "1px solid var(--color-border-subtle)" }}
-              >
-                <button
-                  type="button"
-                  class="rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90"
-                  style={{ "background-color": "var(--color-success)" }}
-                  onClick={() => void app.completeTask(task.id)}
-                >
-                  Complete
-                </button>
-                <button
-                  type="button"
-                  class="inline-flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition"
+                />
+                <input
+                  ref={(el) => {
+                    dueInputRef = el;
+                  }}
+                  type="date"
+                  value={task.dueDate ?? ""}
+                  onInput={(event) =>
+                    void app.updateTask(task.id, {
+                      dueDate: event.currentTarget.value || null,
+                    })
+                  }
+                  tabIndex={-1}
+                  aria-hidden="true"
                   style={{
-                    "border-color": "var(--color-urgency-red)",
-                    color: "var(--color-urgency-red)",
-                    "background-color": "transparent",
+                    position: "absolute",
+                    opacity: "0",
+                    "pointer-events": "none",
+                    width: "1px",
+                    height: "1px",
+                    top: "0",
+                    left: "0",
                   }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor =
-                      "var(--color-urgency-red-bg)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-                  }}
-                  onClick={() => {
-                    if (window.confirm(`Delete "${task.title}"?`)) {
-                      void app.deleteTask(task.id);
-                    }
-                  }}
-                >
-                  <TrashIcon class="size-3.5" />
-                  <span>Delete</span>
-                </button>
+                />
               </div>
             </>
           );
