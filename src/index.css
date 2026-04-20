@@ -481,6 +481,8 @@ select {
 }
 
 .datepicker-card {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 290px;
   border-radius: 16px;
