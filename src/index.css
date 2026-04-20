@@ -261,6 +261,38 @@ select {
   opacity: 1;
 }
 
+/* Compact icon-only button used in QuickAdd toolbar when no date is set */
+.quickadd-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.quickadd-icon-btn:hover {
+  border-color: var(--color-border-default);
+  background-color: var(--color-bg-input);
+  color: var(--color-text-secondary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TASK ROW
+───────────────────────────────────────────────────────────── */
+
+/* Subtle inter-row separator — only between rows, never before first or after last */
+.task-row + .task-row {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
 /* ─────────────────────────────────────────────────────────────
    TASK COMPLETION ANIMATION
 ───────────────────────────────────────────────────────────── */
@@ -290,4 +322,65 @@ select {
 .task-row-completing .task-title-text {
   text-decoration: line-through;
   text-decoration-color: var(--color-text-tertiary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DETAIL PANEL — document-editor components
+───────────────────────────────────────────────────────────── */
+
+/* Title — large unstyled input, placeholder fades in */
+.detail-title-input::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+}
+
+/* Notes — borderless textarea, subtle border on focus */
+.detail-notes-textarea::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 0.45;
+}
+
+/* Date pill buttons in the detail panel */
+.detail-date-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-input);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.detail-date-pill:hover {
+  border-color: var(--color-border-default);
+  color: var(--color-text-secondary);
+}
+
+.detail-date-pill.has-value {
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.detail-date-pill.has-value.due {
+  border-color: color-mix(in srgb, var(--color-urgency-amber) 40%, transparent);
+  background-color: var(--color-urgency-amber-bg);
+  color: var(--color-urgency-amber);
+}
+
+.detail-date-pill .pill-clear {
+  opacity: 0.5;
+  transition: opacity 120ms ease;
+}
+
+.detail-date-pill:hover .pill-clear {
+  opacity: 0.9;
 }
