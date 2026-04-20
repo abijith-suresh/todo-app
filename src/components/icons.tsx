@@ -12,6 +12,7 @@ import {
   Folder,
   Inbox,
   Plus,
+  RotateCcw,
   Search,
   Settings,
   Star,
@@ -53,3 +54,4 @@ export const CalendarCheck2Icon: Component<IconProps> = (props) => <CalendarChec
 export const ChevronDownIcon: Component<IconProps> = (props) => <ChevronDown {...props} />;
 export const ChevronLeftIcon: Component<IconProps> = (props) => <ChevronLeft {...props} />;
 export const ChevronRightIcon: Component<IconProps> = (props) => <ChevronRight {...props} />;
+export const Undo2Icon: Component<IconProps> = (props) => <RotateCcw {...props} />;
