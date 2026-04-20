@@ -1,12 +1,13 @@
 import { createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 
 import { CommandPalette } from "./components/CommandPalette";
+import { ConfirmModal } from "./components/ConfirmModal";
 import { DetailPanel } from "./components/DetailPanel";
 import { QuickAdd } from "./components/QuickAdd";
 import { SettingsModal } from "./components/SettingsModal";
 import { Sidebar } from "./components/Sidebar";
 import { SortableTaskList } from "./components/SortableTaskList";
-import { CheckIcon, CloseIcon, TrashIcon } from "./components/icons";
+import { CloseIcon, TrashIcon } from "./components/icons";
 import { getEmptyStateMessage, getProjectTasks, getViewTitle } from "./lib/view-model";
 import { useAppStore } from "./state/app-store";
 
@@ -46,6 +47,10 @@ function App() {
       }
 
       if (event.key === "Escape") {
+        if (app.confirmState()) {
+          app.dismissConfirm();
+          return;
+        }
         if (app.isCommandPaletteOpen()) {
           app.closeCommandPalette();
           return;
@@ -58,7 +63,7 @@ function App() {
         return;
       }
 
-      if (app.isCommandPaletteOpen() || app.isSettingsOpen()) return;
+      if (app.confirmState() || app.isCommandPaletteOpen() || app.isSettingsOpen()) return;
 
       if (awaitingGo) {
         awaitingGo = false;
@@ -114,8 +119,13 @@ function App() {
       if (activeTaskId && (event.key === "Delete" || event.key === "Backspace")) {
         event.preventDefault();
         const task = app.tasks().find((t) => t.id === activeTaskId);
-        if (task && window.confirm(`Delete "${task.title}"?`)) {
-          void app.deleteTask(activeTaskId);
+        if (task) {
+          app.showConfirm({
+            title: "Delete task",
+            message: `"${task.title}" will be permanently deleted.`,
+            confirmLabel: "Delete",
+            onConfirm: () => void app.deleteTask(activeTaskId),
+          });
         }
       }
     };
@@ -163,47 +173,37 @@ function App() {
             <div class="mx-auto flex w-full max-w-2xl flex-col gap-5">
               {/* ── view header ── */}
               <header class="flex items-start justify-between gap-4">
-                <div>
-                  <h2
-                    class="text-2xl font-semibold leading-tight"
-                    style={{ color: "var(--color-text-primary)" }}
-                  >
-                    {getViewTitle(app.activeView(), app.projects())}
-                  </h2>
-                  <p class="mt-0.5 text-sm" style={{ color: "var(--color-text-tertiary)" }}>
-                    {activeCount()} open {activeCount() === 1 ? "task" : "tasks"}
-                  </p>
+                {/* Left: completion checkbox (project only) + title + count */}
+                <div class="flex min-w-0 items-start gap-3">
+                  <Show when={app.activeView().type === "project" && app.activeProject()}>
+                    {(projectAccessor) => (
+                      <input
+                        type="checkbox"
+                        class="task-checkbox mt-[5px] shrink-0"
+                        checked={false}
+                        onChange={() => void app.completeProject(projectAccessor().id)}
+                        aria-label={`Complete project ${projectAccessor().title}`}
+                        title="Complete project"
+                      />
+                    )}
+                  </Show>
+                  <div class="min-w-0">
+                    <h2
+                      class="text-2xl font-semibold leading-tight"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      {getViewTitle(app.activeView(), app.projects())}
+                    </h2>
+                    <p class="mt-0.5 text-sm" style={{ color: "var(--color-text-tertiary)" }}>
+                      {activeCount()} open {activeCount() === 1 ? "task" : "tasks"}
+                    </p>
+                  </div>
                 </div>
 
+                {/* Right: delete button (project only) */}
                 <Show when={app.activeView().type === "project" && app.activeProject()}>
                   {(projectAccessor) => (
-                    <div class="flex items-center gap-1 pt-1">
-                      {/* Complete project */}
-                      <button
-                        type="button"
-                        aria-label="Complete project"
-                        title="Complete project"
-                        class="flex size-7 items-center justify-center rounded-lg transition-colors"
-                        style={{
-                          color: "var(--color-text-tertiary)",
-                          "background-color": "transparent",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLElement).style.color = "var(--color-success)";
-                          (e.currentTarget as HTMLElement).style.backgroundColor =
-                            "color-mix(in srgb, var(--color-success) 12%, transparent)";
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLElement).style.color =
-                            "var(--color-text-tertiary)";
-                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-                        }}
-                        onClick={() => void app.completeProject(projectAccessor().id)}
-                      >
-                        <CheckIcon class="size-4" />
-                      </button>
-
-                      {/* Delete project */}
+                    <div class="shrink-0 pt-1">
                       <button
                         type="button"
                         aria-label="Delete project"
@@ -224,13 +224,12 @@ function App() {
                           (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
                         }}
                         onClick={() => {
-                          if (
-                            window.confirm(
-                              `Delete project "${projectAccessor().title}"? Tasks will move to Inbox.`
-                            )
-                          ) {
-                            void app.deleteProject(projectAccessor().id);
-                          }
+                          app.showConfirm({
+                            title: "Delete project",
+                            message: `"${projectAccessor().title}" will be deleted. Its tasks will move to Inbox.`,
+                            confirmLabel: "Delete",
+                            onConfirm: () => void app.deleteProject(projectAccessor().id),
+                          });
                         }}
                       >
                         <TrashIcon class="size-4" />
@@ -317,6 +316,7 @@ function App() {
       <DetailPanel />
       <SettingsModal />
       <CommandPalette />
+      <ConfirmModal />
     </div>
   );
 }
