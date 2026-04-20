@@ -1,11 +1,10 @@
 import { createSortable, transformStyle } from "@thisbeyond/solid-dnd";
 import { type Component, createMemo } from "solid-js";
 
-import { formatDateLabel } from "../lib/date";
 import { getTaskUrgency } from "../lib/view-model";
 import { useAppStore } from "../state/app-store";
 import type { Task } from "../types";
-import { StarFilledIcon, StarIcon } from "./icons";
+import { FlagIcon, StarFilledIcon, StarIcon } from "./icons";
 
 interface TaskRowProps {
   task: Task;
@@ -22,8 +21,6 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
 
   const rowBg = createMemo(() => {
     if (isSelected()) return "var(--color-accent-subtle)";
-    if (urgency() === "overdue") return "var(--color-urgency-red-bg)";
-    if (urgency() === "due-today") return "var(--color-urgency-amber-bg)";
     return "transparent";
   });
 
@@ -91,49 +88,22 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         ) : null}
       </div>
 
-      {/* date chips */}
-      <div class="hidden shrink-0 items-center gap-1.5 md:flex">
-        {props.task.whenDate ? (
-          <span
-            class="rounded-full border px-2 py-0.5 font-mono text-[11px]"
-            style={{
-              "border-color": "var(--color-border-subtle)",
-              "background-color": "var(--color-bg-input)",
-              color: "var(--color-text-tertiary)",
-            }}
-          >
-            {formatDateLabel(props.task.whenDate)}
-          </span>
-        ) : null}
-
-        {props.task.dueDate ? (
-          <span
-            class="rounded-full border px-2 py-0.5 font-mono text-[11px]"
-            style={{
-              "border-color":
-                urgency() === "overdue"
-                  ? "var(--color-urgency-red)"
-                  : urgency() === "due-today"
-                    ? "var(--color-urgency-amber)"
-                    : "var(--color-border-subtle)",
-              "background-color":
-                urgency() === "overdue"
-                  ? "var(--color-urgency-red-bg)"
-                  : urgency() === "due-today"
-                    ? "var(--color-urgency-amber-bg)"
-                    : "var(--color-bg-input)",
-              color:
-                urgency() === "overdue"
-                  ? "var(--color-urgency-red)"
-                  : urgency() === "due-today"
-                    ? "var(--color-urgency-amber)"
-                    : "var(--color-text-tertiary)",
-            }}
-          >
-            Due {formatDateLabel(props.task.dueDate)}
-          </span>
-        ) : null}
-      </div>
+      {/* due-date urgency indicator — compact flag icon, only when urgent */}
+      {urgency() === "due-today" || urgency() === "overdue" ? (
+        <span
+          class="flex shrink-0 items-center justify-center rounded-full"
+          style={{
+            width: "20px",
+            height: "20px",
+            "background-color": "var(--color-urgency-red-bg)",
+            color: "var(--color-urgency-red)",
+          }}
+          title={urgency() === "overdue" ? "Overdue" : "Due today"}
+          aria-label={urgency() === "overdue" ? "Overdue" : "Due today"}
+        >
+          <FlagIcon class="size-3" />
+        </span>
+      ) : null}
 
       {/* star */}
       <button
