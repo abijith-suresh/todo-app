@@ -63,14 +63,20 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         (e.currentTarget as HTMLElement).style.backgroundColor = rowBg();
       }}
     >
-      {/* custom checkbox */}
+      {/* custom checkbox — shows as checked while completing; click again to cancel */}
       <input
         type="checkbox"
         aria-label={`Complete ${props.task.title}`}
         class="task-checkbox shrink-0"
-        checked={false}
+        checked={isCompleting()}
         onClick={(event) => event.stopPropagation()}
-        onChange={() => void app.completeTask(props.task.id)}
+        onChange={() => {
+          if (isCompleting()) {
+            app.cancelComplete(props.task.id);
+          } else {
+            void app.completeTask(props.task.id);
+          }
+        }}
       />
 
       {/* title + notes */}

@@ -173,8 +173,14 @@ export const DetailPanel: Component = () => {
                     type="checkbox"
                     aria-label={`Complete ${task.title}`}
                     class="task-checkbox mt-[3px] shrink-0"
-                    checked={false}
-                    onChange={() => void app.completeTask(task.id)}
+                    checked={app.completingTaskIds().includes(task.id)}
+                    onChange={() => {
+                      if (app.completingTaskIds().includes(task.id)) {
+                        app.cancelComplete(task.id);
+                      } else {
+                        void app.completeTask(task.id);
+                      }
+                    }}
                   />
                   <input
                     value={title()}
