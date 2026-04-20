@@ -171,7 +171,7 @@ select {
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-border-default);
+  border: 2px solid var(--color-border-default);
   background: transparent;
   cursor: pointer;
   transition:
@@ -316,12 +316,34 @@ select {
 
 .task-row-completing {
   animation: task-complete 700ms ease forwards;
-  pointer-events: none;
+  /* pointer-events kept ON so the user can click the checkbox to cancel */
 }
 
 .task-row-completing .task-title-text {
   text-decoration: line-through;
   text-decoration-color: var(--color-text-tertiary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   EMPTY STATE MESSAGE
+───────────────────────────────────────────────────────────── */
+
+/* Fade-up-in with a slight delay so it doesn't clash with the
+   completing task's exit animation */
+.empty-state-message {
+  animation: empty-fade-up 380ms 120ms both ease;
+}
+
+@keyframes empty-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -611,36 +633,28 @@ select {
    COMPLETED TASKS SECTION
 ───────────────────────────────────────────────────────────── */
 
+/* Header: "Completed ──────── 3 ▾" — no border box, pure inline layout */
 .completed-section-header {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px dashed var(--color-border-default);
+  padding: 4px 2px;
   background: transparent;
+  border: none;
   cursor: pointer;
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease;
 }
 
-.completed-section-header:hover {
-  background-color: var(--color-bg-input);
-  border-color: var(--color-border-default);
+.completed-section-header:hover .completed-divider-line {
+  border-top-color: var(--color-border-default);
 }
 
-.completed-section-check {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: var(--color-success);
-  color: #fff;
-  flex-shrink: 0;
+/* Flex-grow ruler that fills space between label and count */
+.completed-divider-line {
+  flex: 1;
+  height: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  transition: border-top-color 140ms ease;
 }
 
 /* CSS grid trick for smooth height: auto animation */
@@ -659,12 +673,18 @@ select {
   overflow: hidden;
 }
 
+/* Completed task row — ghost button, no checkbox, undo icon on hover */
 .completed-task-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  border-radius: 7px;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 4px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
   transition: background-color 120ms ease;
 }
 
@@ -672,27 +692,40 @@ select {
   background-color: var(--color-bg-input);
 }
 
-.completed-task-checkbox {
+/* Undo icon — hidden by default, fades in on hover */
+.completed-row-undo {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  border: none;
-  background-color: var(--color-success);
-  color: #fff;
-  cursor: pointer;
   flex-shrink: 0;
-  opacity: 0.7;
-  transition:
-    opacity 120ms ease,
-    transform 120ms ease;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity 120ms ease;
 }
 
-.completed-task-checkbox:hover {
-  opacity: 1;
-  transform: scale(1.1);
+.completed-task-row:hover .completed-row-undo {
+  opacity: 0.7;
+}
+
+/* Exit animation when row is being reopened */
+.completed-task-row.is-exiting {
+  animation: completed-row-exit 200ms ease forwards;
+  pointer-events: none;
+}
+
+@keyframes completed-row-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(8px);
+  }
 }
 
 .confirm-overlay {
