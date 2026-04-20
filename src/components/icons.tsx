@@ -5,6 +5,8 @@ import {
   CalendarRange,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Circle,
   Flag,
   Folder,
@@ -49,3 +51,5 @@ export const CalendarClockIcon: Component<IconProps> = (props) => <CalendarClock
 export const FlagIcon: Component<IconProps> = (props) => <Flag {...props} />;
 export const CalendarCheck2Icon: Component<IconProps> = (props) => <CalendarCheck2 {...props} />;
 export const ChevronDownIcon: Component<IconProps> = (props) => <ChevronDown {...props} />;
+export const ChevronLeftIcon: Component<IconProps> = (props) => <ChevronLeft {...props} />;
+export const ChevronRightIcon: Component<IconProps> = (props) => <ChevronRight {...props} />;
