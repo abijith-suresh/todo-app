@@ -179,7 +179,8 @@ function App() {
                     {(projectAccessor) => (
                       <input
                         type="checkbox"
-                        class="task-checkbox mt-[5px] shrink-0"
+                        class="task-checkbox mt-[3px] shrink-0"
+                        style={{ width: "20px", height: "20px" }}
                         checked={false}
                         onChange={() => void app.completeProject(projectAccessor().id)}
                         aria-label={`Complete project ${projectAccessor().title}`}
