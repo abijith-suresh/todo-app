@@ -80,9 +80,8 @@ export const DetailPanel: Component = () => {
         "border-left": "1px solid var(--color-border-subtle)",
       }}
     >
-      <Show when={app.selectedTask()}>
-        {(taskAccessor) => {
-          const task = taskAccessor();
+      <Show when={app.selectedTask()} keyed>
+        {(task) => {
           const today = getTodayIso();
 
           // Inline urgency for due date color — recomputed on each render
@@ -416,55 +415,56 @@ export const DetailPanel: Component = () => {
                     </Show>
                   </div>
                 </div>
-
-                {/* Hidden native date inputs — triggered programmatically */}
-                <input
-                  ref={(el) => {
-                    whenInputRef = el;
-                  }}
-                  type="date"
-                  value={task.whenDate ?? ""}
-                  onInput={(event) =>
-                    void app.updateTask(task.id, {
-                      whenDate: event.currentTarget.value || null,
-                    })
-                  }
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    opacity: "0",
-                    "pointer-events": "none",
-                    width: "1px",
-                    height: "1px",
-                    top: "0",
-                    left: "0",
-                  }}
-                />
-                <input
-                  ref={(el) => {
-                    dueInputRef = el;
-                  }}
-                  type="date"
-                  value={task.dueDate ?? ""}
-                  onInput={(event) =>
-                    void app.updateTask(task.id, {
-                      dueDate: event.currentTarget.value || null,
-                    })
-                  }
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    opacity: "0",
-                    "pointer-events": "none",
-                    width: "1px",
-                    height: "1px",
-                    top: "0",
-                    left: "0",
-                  }}
-                />
               </div>
+
+              {/* Hidden date inputs — direct child of aside (outside scroll container)
+                  so browser showPicker() is never inside an overflow:auto context */}
+              <input
+                ref={(el) => {
+                  whenInputRef = el;
+                }}
+                type="date"
+                value={task.whenDate ?? ""}
+                onInput={(event) =>
+                  void app.updateTask(task.id, {
+                    whenDate: event.currentTarget.value || null,
+                  })
+                }
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{
+                  position: "fixed",
+                  opacity: "0",
+                  "pointer-events": "none",
+                  width: "1px",
+                  height: "1px",
+                  top: "0",
+                  left: "0",
+                }}
+              />
+              <input
+                ref={(el) => {
+                  dueInputRef = el;
+                }}
+                type="date"
+                value={task.dueDate ?? ""}
+                onInput={(event) =>
+                  void app.updateTask(task.id, {
+                    dueDate: event.currentTarget.value || null,
+                  })
+                }
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{
+                  position: "fixed",
+                  opacity: "0",
+                  "pointer-events": "none",
+                  width: "1px",
+                  height: "1px",
+                  top: "0",
+                  left: "0",
+                }}
+              />
             </>
           );
         }}
