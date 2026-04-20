@@ -164,8 +164,16 @@ export const SettingsModal: Component = () => {
                   class="hidden"
                   onChange={(event) => {
                     const file = event.currentTarget.files?.[0];
-                    if (file) void app.importData(file);
                     event.currentTarget.value = "";
+                    if (file) {
+                      app.showConfirm({
+                        title: "Replace all data",
+                        message:
+                          "Importing will replace all current tasks, projects, and preferences. This cannot be undone.",
+                        confirmLabel: "Import",
+                        onConfirm: () => void app.importData(file),
+                      });
+                    }
                   }}
                 />
               </div>
