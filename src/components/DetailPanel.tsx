@@ -1,12 +1,14 @@
 import { type Component, createEffect, createSignal, For, Show } from "solid-js";
 
-import { formatDateLabel } from "../lib/date";
+import { compareIsoDate, formatDateLabel, getTodayIso } from "../lib/date";
 import { useAppStore } from "../state/app-store";
 import {
   CalendarClockIcon,
+  ChevronDownIcon,
   CloseIcon,
   FlagIcon,
   FolderIcon,
+  InboxIcon,
   StarFilledIcon,
   StarIcon,
   TrashIcon,
@@ -16,15 +18,17 @@ export const DetailPanel: Component = () => {
   const app = useAppStore();
   const [title, setTitle] = createSignal("");
   const [notes, setNotes] = createSignal("");
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = createSignal(false);
 
-  // Sync local edit state whenever the selected task changes
+  // Sync local state whenever the selected task changes; close stale dropdown
   createEffect(() => {
     const task = app.selectedTask();
     setTitle(task?.title ?? "");
     setNotes(task?.notes ?? "");
+    setIsProjectDropdownOpen(false);
   });
 
-  // Hidden native date input refs
+  // Hidden native date input refs — triggered programmatically by the pill buttons
   let whenInputRef: HTMLInputElement | undefined;
   let dueInputRef: HTMLInputElement | undefined;
 
@@ -79,6 +83,28 @@ export const DetailPanel: Component = () => {
       <Show when={app.selectedTask()}>
         {(taskAccessor) => {
           const task = taskAccessor();
+          const today = getTodayIso();
+
+          // Inline urgency for due date color — recomputed on each render
+          const dueIsUrgent = task.dueDate != null && compareIsoDate(task.dueDate, today) <= 0;
+          const dueIsFuture = task.dueDate != null && compareIsoDate(task.dueDate, today) > 0;
+          const dueIconColor = dueIsUrgent
+            ? "var(--color-urgency-red)"
+            : dueIsFuture
+              ? "var(--color-urgency-amber)"
+              : "var(--color-text-tertiary)";
+
+          const currentProjectName = task.projectId
+            ? (app.openProjects().find((p) => p.id === task.projectId)?.title ?? "Inbox")
+            : "Inbox";
+
+          const rowHoverEnter = (e: MouseEvent): void => {
+            (e.currentTarget as HTMLElement).style.backgroundColor =
+              "color-mix(in srgb, var(--color-border-subtle) 120%, transparent)";
+          };
+          const rowHoverLeave = (e: MouseEvent): void => {
+            (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+          };
 
           return (
             <>
@@ -156,9 +182,12 @@ export const DetailPanel: Component = () => {
                       (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
                     }}
                     onClick={() => {
-                      if (window.confirm(`Delete "${task.title}"?`)) {
-                        void app.deleteTask(task.id);
-                      }
+                      app.showConfirm({
+                        title: "Delete task",
+                        message: `"${task.title}" will be permanently deleted.`,
+                        confirmLabel: "Delete",
+                        onConfirm: () => void app.deleteTask(task.id),
+                      });
                     }}
                     aria-label="Delete task"
                   >
@@ -169,16 +198,14 @@ export const DetailPanel: Component = () => {
 
               {/* ── Editable body ── */}
               <div class="min-h-0 flex-1 overflow-y-auto">
-                {/* Title row — checkbox + editor-style input */}
+                {/* Title row — completion circle + large editor input */}
                 <div class="flex items-start gap-3 px-5 pt-3 pb-2">
                   <input
                     type="checkbox"
                     aria-label={`Complete ${task.title}`}
                     class="task-checkbox mt-[3px] shrink-0"
                     checked={false}
-                    onChange={() => {
-                      void app.completeTask(task.id);
-                    }}
+                    onChange={() => void app.completeTask(task.id)}
                   />
                   <input
                     value={title()}
@@ -196,31 +223,41 @@ export const DetailPanel: Component = () => {
                   />
                 </div>
 
-                {/* Notes — borderless until focused */}
+                {/* Notes — borderless, grows to fill space */}
                 <div class="px-5 pb-4">
                   <textarea
-                    rows="5"
+                    rows="7"
                     value={notes()}
                     onInput={(e) => setNotes(e.currentTarget.value)}
                     onBlur={() => void saveNotes()}
                     placeholder="Add notes, links, or context…"
                     class="detail-notes-textarea w-full resize-none bg-transparent text-sm leading-relaxed outline-none"
-                    style={{ color: "var(--color-text-secondary)" }}
+                    style={{ color: "var(--color-text-secondary)", "min-height": "7rem" }}
                   />
                 </div>
 
                 {/* ── Divider ── */}
                 <div
-                  class="mx-5"
+                  class="mx-5 mb-3"
                   style={{ "border-top": "1px solid var(--color-border-subtle)" }}
                 />
 
-                {/* ── Date pills ── */}
-                <div class="px-5 py-4 flex flex-col gap-2">
-                  {/* When pill */}
+                {/* ── Metadata card: When · Due · Project ── */}
+                <div
+                  class="mx-5 mb-4 overflow-hidden"
+                  style={{
+                    "border-radius": "10px",
+                    border: "1px solid var(--color-border-subtle)",
+                    "background-color": "var(--color-bg-input)",
+                  }}
+                >
+                  {/* When row */}
                   <button
                     type="button"
-                    class={`detail-date-pill${task.whenDate ? " has-value" : ""}`}
+                    class="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs transition-colors"
+                    style={{ background: "transparent" }}
+                    onMouseEnter={rowHoverEnter}
+                    onMouseLeave={rowHoverLeave}
                     onClick={(e) => triggerWhenPicker(e, task.id, task.whenDate)}
                     aria-label={
                       task.whenDate
@@ -228,8 +265,18 @@ export const DetailPanel: Component = () => {
                         : "Set when date"
                     }
                   >
-                    <CalendarClockIcon class="size-3.5 shrink-0" />
-                    <span class="flex-1 text-left text-xs">
+                    <CalendarClockIcon
+                      class="size-3.5 shrink-0"
+                      style={{
+                        color: task.whenDate ? "var(--color-accent)" : "var(--color-text-tertiary)",
+                      }}
+                    />
+                    <span
+                      class="flex-1"
+                      style={{
+                        color: task.whenDate ? "var(--color-accent)" : "var(--color-text-tertiary)",
+                      }}
+                    >
                       {task.whenDate ? (
                         <>
                           <span class="mr-1 opacity-60">When</span>
@@ -239,17 +286,23 @@ export const DetailPanel: Component = () => {
                         <span class="opacity-50">When — enters Today on this date</span>
                       )}
                     </span>
-                    {task.whenDate && (
-                      <span class="pill-clear text-xs opacity-40" aria-hidden="true">
+                    {task.whenDate ? (
+                      <span class="opacity-40 text-sm" aria-hidden="true">
                         ×
                       </span>
-                    )}
+                    ) : null}
                   </button>
 
-                  {/* Due pill */}
+                  {/* Due row */}
                   <button
                     type="button"
-                    class={`detail-date-pill${task.dueDate ? " has-value due" : ""}`}
+                    class="flex w-full items-center gap-2.5 border-t px-3 py-2.5 text-left text-xs transition-colors"
+                    style={{
+                      "border-color": "var(--color-border-subtle)",
+                      background: "transparent",
+                    }}
+                    onMouseEnter={rowHoverEnter}
+                    onMouseLeave={rowHoverLeave}
                     onClick={(e) => triggerDuePicker(e, task.id, task.dueDate)}
                     aria-label={
                       task.dueDate
@@ -257,65 +310,114 @@ export const DetailPanel: Component = () => {
                         : "Set due date"
                     }
                   >
-                    <FlagIcon class="size-3.5 shrink-0" />
-                    <span class="flex-1 text-left text-xs">
+                    <FlagIcon class="size-3.5 shrink-0" style={{ color: dueIconColor }} />
+                    <span class="flex-1" style={{ color: dueIconColor }}>
                       {task.dueDate ? (
                         <>
                           <span class="mr-1 opacity-60">Due</span>
                           {formatDateLabel(task.dueDate)}
                         </>
                       ) : (
-                        <span class="opacity-50">Due — hard deadline</span>
+                        <span class="opacity-50" style={{ color: "var(--color-text-tertiary)" }}>
+                          Deadline — hard due date
+                        </span>
                       )}
                     </span>
-                    {task.dueDate && (
-                      <span class="pill-clear text-xs opacity-40" aria-hidden="true">
+                    {task.dueDate ? (
+                      <span
+                        class="opacity-40 text-sm"
+                        style={{ color: dueIconColor }}
+                        aria-hidden="true"
+                      >
                         ×
                       </span>
-                    )}
+                    ) : null}
                   </button>
-                </div>
 
-                {/* ── Divider ── */}
-                <div
-                  class="mx-5"
-                  style={{ "border-top": "1px solid var(--color-border-subtle)" }}
-                />
-
-                {/* ── Project ── */}
-                <div class="px-5 py-4">
+                  {/* Project row — custom dropdown */}
                   <div
-                    class="flex items-center gap-2 rounded-lg px-3 py-2"
-                    style={{
-                      "background-color": "var(--color-bg-input)",
-                      border: "1px solid var(--color-border-default)",
-                    }}
+                    class="relative border-t"
+                    style={{ "border-color": "var(--color-border-subtle)" }}
                   >
-                    <span
-                      style={{ color: "var(--color-text-tertiary)" }}
-                      class="shrink-0 flex items-center"
-                    >
-                      <FolderIcon class="size-3.5" />
-                    </span>
-                    <select
-                      value={task.projectId ?? ""}
-                      onChange={(event) =>
-                        void app.updateTask(task.id, {
-                          projectId: event.currentTarget.value || null,
-                        })
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs transition-colors"
+                      style={{ background: "transparent" }}
+                      onMouseEnter={rowHoverEnter}
+                      onMouseLeave={rowHoverLeave}
+                      onClick={() => setIsProjectDropdownOpen((o) => !o)}
+                      onBlur={() =>
+                        // Delay so mousedown on dropdown items fires first
+                        setTimeout(() => setIsProjectDropdownOpen(false), 150)
                       }
-                      class="min-w-0 flex-1 bg-transparent text-xs outline-none"
-                      style={{ color: "var(--color-text-secondary)" }}
+                      aria-label="Select project"
+                      aria-haspopup="listbox"
+                      aria-expanded={isProjectDropdownOpen()}
                     >
-                      <option value="">Inbox</option>
-                      <For each={app.openProjects()}>
-                        {(project) => <option value={project.id}>{project.title}</option>}
-                      </For>
-                    </select>
+                      <FolderIcon
+                        class="size-3.5 shrink-0"
+                        style={{
+                          color: task.projectId
+                            ? "var(--color-accent)"
+                            : "var(--color-text-tertiary)",
+                        }}
+                      />
+                      <span
+                        class="flex-1"
+                        style={{
+                          color: task.projectId
+                            ? "var(--color-text-primary)"
+                            : "var(--color-text-tertiary)",
+                        }}
+                      >
+                        {currentProjectName}
+                      </span>
+                      <ChevronDownIcon
+                        class="size-3 shrink-0 opacity-40"
+                        style={{ color: "var(--color-text-tertiary)" }}
+                      />
+                    </button>
+
+                    <Show when={isProjectDropdownOpen()}>
+                      <div
+                        class="project-dropdown"
+                        role="listbox"
+                        tabIndex={-1}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onKeyDown={(e) => e.key === "Escape" && setIsProjectDropdownOpen(false)}
+                      >
+                        <button
+                          type="button"
+                          class={`project-dropdown-item${!task.projectId ? " active" : ""}`}
+                          onClick={() => {
+                            void app.updateTask(task.id, { projectId: null });
+                            setIsProjectDropdownOpen(false);
+                          }}
+                        >
+                          <InboxIcon class="size-3.5 shrink-0" />
+                          <span>Inbox</span>
+                        </button>
+                        <For each={app.openProjects()}>
+                          {(project) => (
+                            <button
+                              type="button"
+                              class={`project-dropdown-item${task.projectId === project.id ? " active" : ""}`}
+                              onClick={() => {
+                                void app.updateTask(task.id, { projectId: project.id });
+                                setIsProjectDropdownOpen(false);
+                              }}
+                            >
+                              <FolderIcon class="size-3.5 shrink-0" />
+                              <span>{project.title}</span>
+                            </button>
+                          )}
+                        </For>
+                      </div>
+                    </Show>
                   </div>
                 </div>
 
-                {/* Hidden native date inputs */}
+                {/* Hidden native date inputs — triggered programmatically */}
                 <input
                   ref={(el) => {
                     whenInputRef = el;
