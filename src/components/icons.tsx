@@ -1,11 +1,12 @@
 import {
+  CalendarCheck2,
+  CalendarClock,
   CalendarDays,
   CalendarRange,
-  ChevronDown,
-  ChevronUp,
+  Check,
   Circle,
+  Flag,
   Folder,
-  GripVertical,
   Inbox,
   Plus,
   Search,
@@ -38,9 +39,10 @@ export const StarFilledIcon: Component<IconProps> = (props) => (
 
 export const CircleIcon: Component<IconProps> = (props) => <Circle {...props} />;
 export const FolderIcon: Component<IconProps> = (props) => <Folder {...props} />;
-export const DragHandleIcon: Component<IconProps> = (props) => <GripVertical {...props} />;
 export const PlusIcon: Component<IconProps> = (props) => <Plus {...props} />;
 export const CloseIcon: Component<IconProps> = (props) => <X {...props} />;
-export const ChevronUpIcon: Component<IconProps> = (props) => <ChevronUp {...props} />;
-export const ChevronDownIcon: Component<IconProps> = (props) => <ChevronDown {...props} />;
+export const CheckIcon: Component<IconProps> = (props) => <Check {...props} />;
 export const TrashIcon: Component<IconProps> = (props) => <Trash2 {...props} />;
+export const CalendarClockIcon: Component<IconProps> = (props) => <CalendarClock {...props} />;
+export const FlagIcon: Component<IconProps> = (props) => <Flag {...props} />;
+export const CalendarCheck2Icon: Component<IconProps> = (props) => <CalendarCheck2 {...props} />;
