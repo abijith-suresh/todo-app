@@ -12,7 +12,7 @@ import {
   useContext,
 } from "solid-js";
 
-import { getNowIso, getTodayIso } from "../lib/date";
+import { compareIsoDate, getNowIso, getTodayIso } from "../lib/date";
 import { createId } from "../lib/id";
 import { createSnapshot, parseSnapshot } from "../lib/snapshot";
 import {
@@ -34,6 +34,13 @@ import {
   savePreferences,
 } from "../storage/preferences";
 import type { AppView, Preferences, Project, SearchResultItem, Task, ThemeMode } from "../types";
+
+export interface ConfirmState {
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+}
 
 interface CreateTaskInput {
   title: string;
@@ -93,6 +100,9 @@ interface AppStore {
   setTheme: (theme: ThemeMode) => void;
   exportData: () => void;
   importData: (file: File) => Promise<void>;
+  confirmState: Accessor<ConfirmState | null>;
+  showConfirm: (state: ConfirmState) => void;
+  dismissConfirm: () => void;
 }
 
 const AppContext = createContext<AppStore>();
@@ -130,6 +140,14 @@ export const AppProvider: ParentComponent = (props) => {
   const [commandQuery, setCommandQuery] = createSignal("");
   const [errorMessage, setErrorMessage] = createSignal<string | null>(null);
   const [completingTaskIds, setCompletingTaskIds] = createSignal<string[]>([]);
+  const [confirmState, setConfirmState] = createSignal<ConfirmState | null>(null);
+
+  const showConfirm = (state: ConfirmState): void => {
+    setConfirmState(state);
+  };
+  const dismissConfirm = (): void => {
+    setConfirmState(null);
+  };
 
   let errorTimeout: number | undefined;
 
@@ -218,7 +236,20 @@ export const AppProvider: ParentComponent = (props) => {
         todoStorage.listTasks(),
         todoStorage.listProjects(),
       ]);
-      setTasks(sortTasks(loadedTasks));
+      // Roll over stale whenDates to today (Things 3-style carry-forward)
+      const today = getTodayIso();
+      const rolled = loadedTasks.map((task) => {
+        if (task.status === "open" && task.whenDate && compareIsoDate(task.whenDate, today) < 0) {
+          return { ...task, whenDate: today, updatedAt: getNowIso() };
+        }
+        return task;
+      });
+      const rolledChanged = rolled.filter((t, i) => t !== loadedTasks[i]);
+      if (rolledChanged.length > 0) {
+        await Promise.all(rolledChanged.map((t) => todoStorage.saveTask(t)));
+      }
+
+      setTasks(sortTasks(rolled));
       setProjects(sortProjects(loadedProjects));
       applyDocumentTheme(preferences().theme);
     } catch (error) {
@@ -621,14 +652,6 @@ export const AppProvider: ParentComponent = (props) => {
       const raw = await file.text();
       const snapshot = parseSnapshot(JSON.parse(raw));
 
-      if (
-        !window.confirm(
-          "Importing will replace all current tasks, projects, and preferences. Continue?"
-        )
-      ) {
-        return;
-      }
-
       await todoStorage.replaceAll(snapshot);
       savePreferences(snapshot.preferences ?? defaultPreferences);
       window.location.reload();
@@ -690,6 +713,9 @@ export const AppProvider: ParentComponent = (props) => {
     setTheme,
     exportData,
     importData,
+    confirmState,
+    showConfirm,
+    dismissConfirm,
   };
 
   return <AppContext.Provider value={store}>{props.children}</AppContext.Provider>;
