@@ -14,7 +14,6 @@ import { moveArrayItem } from "../lib/view-model";
 import { useAppStore } from "../state/app-store";
 import type { AppView, Project } from "../types";
 import {
-  DragHandleIcon,
   FolderIcon,
   InboxIcon,
   PlusIcon,
@@ -174,19 +173,6 @@ const ProjectItem: Component<ProjectItemProps> = (props) => {
         }
       }}
     >
-      {/* Drag handle */}
-      <span
-        role="button"
-        tabIndex={-1}
-        aria-label="Drag to reorder"
-        class="shrink-0 opacity-0 group-hover:opacity-30 transition-opacity cursor-grab active:cursor-grabbing"
-        style={{ color: "var(--color-text-tertiary)" }}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <DragHandleIcon class="size-3" />
-      </span>
-
       {/* Folder icon */}
       <span
         class="shrink-0"
@@ -262,8 +248,10 @@ export const Sidebar: Component = () => {
   };
 
   const exitCreateMode = (): void => {
-    setIsCreating(false);
+    // Clear the value BEFORE setIsCreating so that the blur fired on
+    // input unmount sees an empty value and won't create a duplicate project.
     if (createInputRef) createInputRef.value = "";
+    setIsCreating(false);
   };
 
   const handleCreateKeyDown = (event: KeyboardEvent): void => {
