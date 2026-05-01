@@ -31,15 +31,15 @@
     "@thisbeyond/solid-dnd": "^0.7.5",
     "date-fns": "^4.1.0",
     "fuse.js": "^7.3.0",
-    "nanoid": "^5.1.9",
+    "nanoid": "^5.1.11",
     "solid-js": "^1.9.12"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
     "@eslint/js": "^10.0.1",
     "@solidjs/testing-library": "^0.8.10",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/node": "^24.12.2",
     "eslint": "^10.2.1",
@@ -48,14 +48,14 @@
     "eslint-plugin-solid": "^0.14.5",
     "globals": "^17.5.0",
     "husky": "^9.1.7",
-    "jsdom": "^29.0.2",
+    "jsdom": "^29.1.1",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.58.2",
-    "vite": "^8.0.8",
+    "typescript-eslint": "^8.59.1",
+    "vite": "^8.0.10",
     "vite-plugin-solid": "^2.11.12",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.5"
   }
 }
