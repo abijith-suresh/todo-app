@@ -24,16 +24,13 @@ export const CommandPalette: Component = () => {
 
   const chooseResult = (index: number): void => {
     const result = app.searchResults()[index];
-    if (!result) {
-      return;
-    }
-
+    if (!result) return;
     app.openTask(result.taskId, true);
   };
 
   return (
     <Show when={app.isCommandPaletteOpen()}>
-      <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/70 px-4 py-10 backdrop-blur-sm">
+      <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-16">
         <button
           type="button"
           class="absolute inset-0"
@@ -45,71 +42,103 @@ export const CommandPalette: Component = () => {
           role="dialog"
           aria-modal="true"
           tabindex="-1"
-          class="relative z-10 w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950/95 shadow-2xl shadow-black/40"
+          class="relative z-10 w-full max-w-xl overflow-hidden rounded-xl shadow-2xl"
+          style={{
+            "background-color": "var(--color-bg-elevated)",
+            border: "1px solid var(--color-border-default)",
+          }}
         >
-          <div class="flex items-center gap-3 border-b border-white/10 px-5 py-4">
-            <SearchIcon class="size-4 text-zinc-500" />
+          {/* search input */}
+          <div
+            class="flex items-center gap-3 px-4 py-3.5"
+            style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
+          >
+            <SearchIcon class="size-4 shrink-0" />
             <input
-              ref={(element) => {
-                input = element;
+              ref={(el) => {
+                input = el;
               }}
               value={app.commandQuery()}
               onInput={(event) => app.setCommandQuery(event.currentTarget.value)}
               onKeyDown={(event) => {
                 if (event.key === "ArrowDown") {
                   event.preventDefault();
-                  setActiveIndex((current) =>
-                    Math.min(current + 1, Math.max(app.searchResults().length - 1, 0))
+                  setActiveIndex((i) =>
+                    Math.min(i + 1, Math.max(app.searchResults().length - 1, 0))
                   );
                 }
-
                 if (event.key === "ArrowUp") {
                   event.preventDefault();
-                  setActiveIndex((current) => Math.max(current - 1, 0));
+                  setActiveIndex((i) => Math.max(i - 1, 0));
                 }
-
                 if (event.key === "Enter") {
                   event.preventDefault();
                   chooseResult(activeIndex());
                 }
-
                 if (event.key === "Escape") {
                   event.preventDefault();
                   app.closeCommandPalette();
                 }
               }}
-              placeholder="Search tasks and notes"
-              class="w-full bg-transparent text-base text-white outline-none placeholder:text-zinc-500"
+              placeholder="Search tasks and notes…"
+              class="w-full bg-transparent text-sm outline-none"
+              style={{
+                color: "var(--color-text-primary)",
+              }}
             />
           </div>
 
-          <div class="max-h-[24rem] overflow-y-auto p-3">
+          {/* results */}
+          <div class="max-h-80 overflow-y-auto p-2">
             <Show
               when={app.searchResults().length > 0}
               fallback={
-                <p class="px-3 py-6 text-sm text-zinc-500">No tasks matched your search.</p>
+                <p
+                  class="px-3 py-8 text-center text-sm"
+                  style={{ color: "var(--color-text-tertiary)" }}
+                >
+                  No tasks matched your search.
+                </p>
               }
             >
-              <div class="space-y-1">
+              <div>
                 <For each={app.searchResults()}>
                   {(result, index) => (
                     <button
                       type="button"
-                      classList={{
-                        "bg-sky-500/10": activeIndex() === index(),
+                      class="relative flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
+                      style={{
+                        "background-color":
+                          activeIndex() === index() ? "var(--color-accent-subtle)" : "transparent",
+                        "border-left":
+                          activeIndex() === index()
+                            ? "3px solid var(--color-accent)"
+                            : "3px solid transparent",
+                        "padding-left":
+                          activeIndex() === index() ? "calc(0.75rem - 3px)" : "0.75rem",
                       }}
-                      class="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left transition hover:bg-white/5"
                       onMouseEnter={() => setActiveIndex(index())}
                       onClick={() => chooseResult(index())}
                     >
                       <div class="min-w-0 flex-1">
-                        <p class="truncate font-medium text-white">{result.title}</p>
-                        <p class="mt-1 truncate text-sm text-zinc-400">
+                        <p
+                          class="truncate text-sm font-medium"
+                          style={{ color: "var(--color-text-primary)" }}
+                        >
+                          {result.title}
+                        </p>
+                        <p
+                          class="mt-0.5 truncate text-xs"
+                          style={{ color: "var(--color-text-tertiary)" }}
+                        >
                           {result.projectName}
-                          {result.notes ? ` • ${result.notes}` : ""}
+                          {result.notes ? ` · ${result.notes}` : ""}
                         </p>
                       </div>
-                      <span class="shrink-0 text-xs uppercase tracking-[0.16em] text-zinc-500">
+                      <span
+                        class="shrink-0 font-mono text-[11px]"
+                        style={{ color: "var(--color-text-tertiary)" }}
+                      >
                         {result.dateLabel ? formatDateLabel(result.dateLabel) : "No date"}
                       </span>
                     </button>

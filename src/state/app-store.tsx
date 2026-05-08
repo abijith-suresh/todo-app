@@ -12,7 +12,7 @@ import {
   useContext,
 } from "solid-js";
 
-import { getNowIso, getTodayIso } from "../lib/date";
+import { compareIsoDate, getNowIso, getTodayIso } from "../lib/date";
 import { createId } from "../lib/id";
 import { createSnapshot, parseSnapshot } from "../lib/snapshot";
 import {
@@ -34,6 +34,13 @@ import {
   savePreferences,
 } from "../storage/preferences";
 import type { AppView, Preferences, Project, SearchResultItem, Task, ThemeMode } from "../types";
+
+export interface ConfirmState {
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+}
 
 interface CreateTaskInput {
   title: string;
@@ -66,6 +73,7 @@ interface AppStore {
   selectedTask: Accessor<Task | undefined>;
   projectCountMap: Accessor<Map<string, number>>;
   searchResults: Accessor<SearchResultItem[]>;
+  completedViewTasks: Accessor<Task[]>;
   setActiveView: (view: AppView) => void;
   setFocusedTaskId: (taskId: string | null) => void;
   setCommandQuery: (value: string) => void;
@@ -81,6 +89,8 @@ interface AppStore {
   toggleTaskStar: (taskId: string) => Promise<void>;
   completeTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
+  reopenTask: (taskId: string) => Promise<void>;
+  cancelComplete: (taskId: string) => void;
   reorderTasks: (orderedIds: string[]) => Promise<void>;
   createProject: (title: string) => Promise<boolean>;
   updateProject: (
@@ -93,6 +103,9 @@ interface AppStore {
   setTheme: (theme: ThemeMode) => void;
   exportData: () => void;
   importData: (file: File) => Promise<void>;
+  confirmState: Accessor<ConfirmState | null>;
+  showConfirm: (state: ConfirmState) => void;
+  dismissConfirm: () => void;
 }
 
 const AppContext = createContext<AppStore>();
@@ -130,6 +143,17 @@ export const AppProvider: ParentComponent = (props) => {
   const [commandQuery, setCommandQuery] = createSignal("");
   const [errorMessage, setErrorMessage] = createSignal<string | null>(null);
   const [completingTaskIds, setCompletingTaskIds] = createSignal<string[]>([]);
+  const [confirmState, setConfirmState] = createSignal<ConfirmState | null>(null);
+
+  // Non-reactive map of taskId → pending completion timeout ID
+  const completionTimers = new Map<string, ReturnType<typeof window.setTimeout>>();
+
+  const showConfirm = (state: ConfirmState): void => {
+    setConfirmState(state);
+  };
+  const dismissConfirm = (): void => {
+    setConfirmState(null);
+  };
 
   let errorTimeout: number | undefined;
 
@@ -168,6 +192,14 @@ export const AppProvider: ParentComponent = (props) => {
       : undefined;
   });
   const selectedTask = createMemo(() => tasks().find((task) => task.id === selectedTaskId()));
+
+  // Completed tasks for the current view — project views only
+  const completedViewTasks = createMemo(() => {
+    const view = activeView();
+    if (view.type !== "project") return [];
+    const completed = tasks().filter((t) => t.status === "completed");
+    return completed.filter((t) => t.projectId === view.projectId);
+  });
 
   const searchableItems = createMemo(() => {
     const projectNames = new Map(projects().map((project) => [project.id, project.title]));
@@ -218,7 +250,20 @@ export const AppProvider: ParentComponent = (props) => {
         todoStorage.listTasks(),
         todoStorage.listProjects(),
       ]);
-      setTasks(sortTasks(loadedTasks));
+      // Roll over stale whenDates to today (Things 3-style carry-forward)
+      const today = getTodayIso();
+      const rolled = loadedTasks.map((task) => {
+        if (task.status === "open" && task.whenDate && compareIsoDate(task.whenDate, today) < 0) {
+          return { ...task, whenDate: today, updatedAt: getNowIso() };
+        }
+        return task;
+      });
+      const rolledChanged = rolled.filter((t, i) => t !== loadedTasks[i]);
+      if (rolledChanged.length > 0) {
+        await Promise.all(rolledChanged.map((t) => todoStorage.saveTask(t)));
+      }
+
+      setTasks(sortTasks(rolled));
       setProjects(sortProjects(loadedProjects));
       applyDocumentTheme(preferences().theme);
     } catch (error) {
@@ -347,6 +392,15 @@ export const AppProvider: ParentComponent = (props) => {
     await updateTask(taskId, { starred: !task.starred });
   };
 
+  const cancelComplete = (taskId: string): void => {
+    const timerId = completionTimers.get(taskId);
+    if (timerId !== undefined) {
+      window.clearTimeout(timerId);
+      completionTimers.delete(taskId);
+    }
+    setCompletingTaskIds((ids) => ids.filter((id) => id !== taskId));
+  };
+
   const completeTask = async (taskId: string): Promise<void> => {
     if (completingTaskIds().includes(taskId)) {
       return;
@@ -355,7 +409,8 @@ export const AppProvider: ParentComponent = (props) => {
     setCompletingTaskIds((current) => [...current, taskId]);
 
     // eslint-disable-next-line solid/reactivity
-    window.setTimeout(async () => {
+    const timerId = window.setTimeout(async () => {
+      completionTimers.delete(taskId);
       const current = untrack(tasks);
       const existing = current.find((task) => task.id === taskId);
       if (!existing) {
@@ -385,6 +440,8 @@ export const AppProvider: ParentComponent = (props) => {
         reportError("Unable to complete task.");
       }
     }, 720);
+
+    completionTimers.set(taskId, timerId);
   };
 
   const deleteTask = async (taskId: string): Promise<void> => {
@@ -404,6 +461,10 @@ export const AppProvider: ParentComponent = (props) => {
       setTasks(current);
       reportError("Unable to delete task.");
     }
+  };
+
+  const reopenTask = async (taskId: string): Promise<void> => {
+    await updateTask(taskId, { status: "open", completedAt: null });
   };
 
   const reorderTasks = async (orderedIds: string[]): Promise<void> => {
@@ -621,14 +682,6 @@ export const AppProvider: ParentComponent = (props) => {
       const raw = await file.text();
       const snapshot = parseSnapshot(JSON.parse(raw));
 
-      if (
-        !window.confirm(
-          "Importing will replace all current tasks, projects, and preferences. Continue?"
-        )
-      ) {
-        return;
-      }
-
       await todoStorage.replaceAll(snapshot);
       savePreferences(snapshot.preferences ?? defaultPreferences);
       window.location.reload();
@@ -660,6 +713,7 @@ export const AppProvider: ParentComponent = (props) => {
     selectedTask,
     projectCountMap,
     searchResults,
+    completedViewTasks,
     setActiveView,
     setFocusedTaskId,
     setCommandQuery,
@@ -681,6 +735,8 @@ export const AppProvider: ParentComponent = (props) => {
     toggleTaskStar,
     completeTask,
     deleteTask,
+    reopenTask,
+    cancelComplete,
     reorderTasks,
     createProject,
     updateProject,
@@ -690,6 +746,9 @@ export const AppProvider: ParentComponent = (props) => {
     setTheme,
     exportData,
     importData,
+    confirmState,
+    showConfirm,
+    dismissConfirm,
   };
 
   return <AppContext.Provider value={store}>{props.children}</AppContext.Provider>;

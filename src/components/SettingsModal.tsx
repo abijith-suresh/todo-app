@@ -4,142 +4,223 @@ import { useAppStore } from "../state/app-store";
 import type { ThemeMode } from "../types";
 import { CloseIcon } from "./icons";
 
-const shortcuts = [
+const shortcuts: [string, string][] = [
   ["New task", "N"],
   ["Search", "⌘K / Ctrl+K"],
   ["Complete task", "Space"],
   ["Star task", "S"],
-  ["Delete task", "Delete / Backspace"],
-  ["Go to Inbox", "G I"],
-  ["Go to Today", "G T"],
-  ["Go to Upcoming", "G U"],
-  ["Close detail panel", "Esc"],
+  ["Delete task", "Del / ⌫"],
+  ["Go to Inbox", "G then I"],
+  ["Go to Today", "G then T"],
+  ["Go to Upcoming", "G then U"],
+  ["Close panel", "Esc"],
 ];
 
-const themes: ThemeMode[] = ["system", "light", "dark"];
+const themes: { value: ThemeMode; label: string }[] = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
 
 export const SettingsModal: Component = () => {
   const app = useAppStore();
-
   let fileInput: HTMLInputElement | undefined;
 
   return (
     <Show when={app.isSettingsOpen()}>
-      <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm">
+      {/* Backdrop */}
+      <div class="fixed inset-0 z-40 flex items-center justify-center px-4 py-8">
         <button
           type="button"
           class="absolute inset-0"
+          style={{ "background-color": "rgba(0,0,0,0.4)" }}
           aria-label="Close settings"
           onClick={() => app.closeSettings()}
         />
 
-        <div class="relative z-10 max-h-full w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-zinc-950/95 p-6 shadow-2xl shadow-black/40">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                Settings
-              </p>
-              <h2 class="mt-1 text-2xl font-semibold text-white">
-                Preferences, backup, and shortcuts
-              </h2>
-            </div>
+        {/* Modal card */}
+        <div
+          class="relative z-10 flex max-h-[88vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl shadow-2xl"
+          style={{
+            "background-color": "var(--color-bg-surface)",
+            border: "1px solid var(--color-border-subtle)",
+          }}
+        >
+          {/* Header */}
+          <div class="flex shrink-0 items-center justify-between px-7 pt-6 pb-5">
+            <h2 class="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
+              Settings
+            </h2>
             <button
               type="button"
-              class="rounded-2xl border border-white/10 bg-white/5 p-2 text-zinc-300 transition hover:bg-white/10"
+              class="flex size-6 items-center justify-center rounded-md transition-colors"
+              style={{
+                color: "var(--color-text-tertiary)",
+                "background-color": "transparent",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
+                (e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                (e.currentTarget as HTMLElement).style.color = "var(--color-text-tertiary)";
+              }}
               onClick={() => app.closeSettings()}
             >
-              <CloseIcon class="size-4" />
+              <CloseIcon class="size-3.5" />
             </button>
           </div>
 
-          <div class="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <section class="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-5">
-              <h3 class="text-lg font-semibold text-white">Theme</h3>
-              <p class="text-sm text-zinc-400">
-                Stored in localStorage and defaults to your system preference.
+          {/* Scrollable body */}
+          <div class="min-h-0 flex-1 overflow-y-auto px-7 pb-7">
+            {/* ── Appearance ── */}
+            <section class="mb-6">
+              <p
+                class="mb-3 text-[11px] font-medium"
+                style={{ color: "var(--color-text-tertiary)" }}
+              >
+                Appearance
               </p>
-              <div class="flex flex-wrap gap-3">
+
+              {/* Segmented theme control — no outer border, just three adjacent pills */}
+              <div class="flex gap-1">
                 <For each={themes}>
-                  {(theme) => (
-                    <button
-                      type="button"
-                      classList={{
-                        "border-sky-400/60 bg-sky-500/10 text-white":
-                          app.preferences().theme === theme,
-                      }}
-                      class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm capitalize text-zinc-300 transition hover:bg-white/10"
-                      onClick={() => app.setTheme(theme)}
-                    >
-                      {theme}
-                    </button>
-                  )}
+                  {(theme) => {
+                    const isActive = () => app.preferences().theme === theme.value;
+                    return (
+                      <button
+                        type="button"
+                        class="flex-1 rounded-lg py-1.5 text-xs font-medium transition-all"
+                        style={{
+                          "background-color": isActive()
+                            ? "var(--color-accent-subtle)"
+                            : "var(--color-bg-input)",
+                          color: isActive() ? "var(--color-accent)" : "var(--color-text-tertiary)",
+                          border: isActive()
+                            ? "1px solid color-mix(in srgb, var(--color-accent) 25%, transparent)"
+                            : "1px solid transparent",
+                          transition: "all 150ms ease",
+                        }}
+                        onClick={() => app.setTheme(theme.value)}
+                      >
+                        {theme.label}
+                      </button>
+                    );
+                  }}
                 </For>
               </div>
             </section>
 
-            <section class="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-5">
-              <h3 class="text-lg font-semibold text-white">Backup and restore</h3>
-              <p class="text-sm text-zinc-400">
-                Export a versioned JSON snapshot, or import one to replace everything in the
-                browser.
+            {/* ── Data ── */}
+            <section class="mb-6">
+              <p
+                class="mb-1 text-[11px] font-medium"
+                style={{ color: "var(--color-text-tertiary)" }}
+              >
+                Data
               </p>
-              <div class="flex flex-wrap gap-3">
+              <p
+                class="mb-3 text-xs leading-relaxed"
+                style={{ color: "var(--color-text-tertiary)" }}
+              >
+                Export a versioned JSON backup, or replace all data from a previous snapshot.
+              </p>
+              <div class="flex gap-2">
                 <button
                   type="button"
-                  class="rounded-2xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-400"
+                  class="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-85"
+                  style={{ "background-color": "var(--color-accent)" }}
                   onClick={() => app.exportData()}
                 >
-                  Export JSON
+                  Export
                 </button>
                 <button
                   type="button"
-                  class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10"
+                  class="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+                  style={{
+                    "background-color": "var(--color-bg-input)",
+                    color: "var(--color-text-secondary)",
+                    border: "1px solid var(--color-border-default)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor =
+                      "var(--color-border-focus)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor =
+                      "var(--color-border-default)";
+                  }}
                   onClick={() => fileInput?.click()}
                 >
-                  Import JSON
+                  Import
                 </button>
                 <input
-                  ref={(element) => {
-                    fileInput = element;
+                  ref={(el) => {
+                    fileInput = el;
                   }}
                   type="file"
                   accept="application/json"
                   class="hidden"
                   onChange={(event) => {
                     const file = event.currentTarget.files?.[0];
-                    if (file) {
-                      void app.importData(file);
-                    }
                     event.currentTarget.value = "";
+                    if (file) {
+                      app.showConfirm({
+                        title: "Replace all data",
+                        message:
+                          "Importing will replace all current tasks, projects, and preferences. This cannot be undone.",
+                        confirmLabel: "Import",
+                        onConfirm: () => void app.importData(file),
+                      });
+                    }
                   }}
                 />
               </div>
             </section>
-          </div>
 
-          <section class="mt-6 rounded-3xl border border-white/10 bg-white/5 p-5">
-            <h3 class="text-lg font-semibold text-white">Keyboard shortcuts</h3>
-            <div class="mt-4 overflow-hidden rounded-2xl border border-white/10">
-              <table class="min-w-full divide-y divide-white/10 text-left text-sm text-zinc-300">
-                <thead class="bg-white/5 text-xs uppercase tracking-[0.16em] text-zinc-500">
-                  <tr>
-                    <th class="px-4 py-3 font-medium">Action</th>
-                    <th class="px-4 py-3 font-medium">Shortcut</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-white/10">
-                  <For each={shortcuts}>
-                    {(shortcut) => (
-                      <tr>
-                        <td class="px-4 py-3">{shortcut[0]}</td>
-                        <td class="px-4 py-3 text-zinc-100">{shortcut[1]}</td>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
-            </div>
-          </section>
+            {/* ── Keyboard shortcuts ── */}
+            <section>
+              <p
+                class="mb-3 text-[11px] font-medium"
+                style={{ color: "var(--color-text-tertiary)" }}
+              >
+                Keyboard shortcuts
+              </p>
+              <div
+                class="rounded-xl overflow-hidden"
+                style={{
+                  border: "1px solid var(--color-border-subtle)",
+                  "background-color": "var(--color-bg-input)",
+                }}
+              >
+                <For each={shortcuts}>
+                  {([action, key], index) => (
+                    <div
+                      class="flex items-center justify-between px-4 py-2.5"
+                      style={{
+                        "border-top": index() > 0 ? "1px solid var(--color-border-subtle)" : "none",
+                      }}
+                    >
+                      <span class="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+                        {action}
+                      </span>
+                      <kbd
+                        class="rounded-md px-1.5 py-0.5 font-mono text-[10px] leading-none"
+                        style={{
+                          "background-color": "var(--color-bg-surface)",
+                          color: "var(--color-text-primary)",
+                          border: "1px solid var(--color-border-default)",
+                        }}
+                      >
+                        {key}
+                      </kbd>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </Show>

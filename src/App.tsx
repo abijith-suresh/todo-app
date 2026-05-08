@@ -1,44 +1,54 @@
-import { createMemo, For, Match, onCleanup, onMount, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  onCleanup,
+  onMount,
+  Show,
+  Switch,
+} from "solid-js";
 
 import { CommandPalette } from "./components/CommandPalette";
+import { CompletedTasksSection } from "./components/CompletedTasksSection";
+import { ConfirmModal } from "./components/ConfirmModal";
 import { DetailPanel } from "./components/DetailPanel";
 import { QuickAdd } from "./components/QuickAdd";
 import { SettingsModal } from "./components/SettingsModal";
 import { Sidebar } from "./components/Sidebar";
 import { SortableTaskList } from "./components/SortableTaskList";
+import { CloseIcon, TrashIcon } from "./components/icons";
 import { getEmptyStateMessage, getProjectTasks, getViewTitle } from "./lib/view-model";
 import { useAppStore } from "./state/app-store";
-import { CloseIcon, TrashIcon } from "./components/icons";
 
 const isEditableTarget = (target: EventTarget | null): boolean => {
   const element = target as HTMLElement | null;
-  if (!element) {
-    return false;
-  }
-
+  if (!element) return false;
   return Boolean(element.closest("input, textarea, select, [contenteditable='true']"));
 };
 
 function App() {
   const app = useAppStore();
+
   const activeTasks = createMemo(() => {
     const view = app.activeView();
-    if (view.type === "project") {
-      return getProjectTasks(app.openTasks(), view.projectId);
-    }
-
-    if (view.type === "today") {
+    if (view.type === "project") return getProjectTasks(app.openTasks(), view.projectId);
+    if (view.type === "today")
       return [...app.todaySections().overdue, ...app.todaySections().today];
-    }
-
-    if (view.type === "upcoming") {
-      return app.upcomingGroups().flatMap((group) => group.tasks);
-    }
-
+    if (view.type === "upcoming") return app.upcomingGroups().flatMap((g) => g.tasks);
     return app.inboxTasks();
   });
 
   const activeCount = createMemo(() => activeTasks().length);
+
+  // Completed tasks section
+  const [showCompleted, setShowCompleted] = createSignal(false);
+  createEffect(() => {
+    // Reset collapsed state on view change
+    void app.activeView();
+    setShowCompleted(false);
+  });
 
   let quickAddInput: HTMLInputElement | undefined;
 
@@ -56,43 +66,37 @@ function App() {
       }
 
       if (event.key === "Escape") {
+        if (app.confirmState()) {
+          app.dismissConfirm();
+          return;
+        }
         if (app.isCommandPaletteOpen()) {
           app.closeCommandPalette();
           return;
         }
-
         if (app.isSettingsOpen()) {
           app.closeSettings();
           return;
         }
-
-        if (app.selectedTaskId()) {
-          app.closeTask();
-        }
-
+        if (app.selectedTaskId()) app.closeTask();
         return;
       }
 
-      if (app.isCommandPaletteOpen() || app.isSettingsOpen()) {
-        return;
-      }
+      if (app.confirmState() || app.isCommandPaletteOpen() || app.isSettingsOpen()) return;
 
       if (awaitingGo) {
         awaitingGo = false;
         window.clearTimeout(goTimeout);
-
         if (key === "i") {
           event.preventDefault();
           app.setActiveView({ type: "inbox" });
           return;
         }
-
         if (key === "t") {
           event.preventDefault();
           app.setActiveView({ type: "today" });
           return;
         }
-
         if (key === "u") {
           event.preventDefault();
           app.setActiveView({ type: "upcoming" });
@@ -111,9 +115,7 @@ function App() {
         return;
       }
 
-      if (isEditable) {
-        return;
-      }
+      if (isEditable) return;
 
       if (key === "n") {
         event.preventDefault();
@@ -135,9 +137,14 @@ function App() {
 
       if (activeTaskId && (event.key === "Delete" || event.key === "Backspace")) {
         event.preventDefault();
-        const task = app.tasks().find((item) => item.id === activeTaskId);
-        if (task && window.confirm(`Delete “${task.title}”?`)) {
-          void app.deleteTask(activeTaskId);
+        const task = app.tasks().find((t) => t.id === activeTaskId);
+        if (task) {
+          app.showConfirm({
+            title: "Delete task",
+            message: `"${task.title}" will be permanently deleted.`,
+            confirmLabel: "Delete",
+            onConfirm: () => void app.deleteTask(activeTaskId),
+          });
         }
       }
     };
@@ -150,92 +157,129 @@ function App() {
   });
 
   return (
-    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_32%),linear-gradient(180deg,#0b1020_0%,#090d18_100%)] text-zinc-100">
-      <div class="grid min-h-screen lg:grid-cols-[18rem_minmax(0,1fr)]">
+    <div
+      class="min-h-screen"
+      style={{ "background-color": "var(--color-bg-base)", color: "var(--color-text-primary)" }}
+    >
+      <div class="grid min-h-screen lg:grid-cols-[16rem_minmax(0,1fr)]">
         <Sidebar />
 
-        <main class="relative min-w-0 px-4 py-5 sm:px-6 lg:px-8">
-          <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-            <Show when={app.errorMessage()}>
-              {(message) => (
-                <div class="flex items-center justify-between gap-3 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-                  <span>{message()}</span>
-                  <button type="button" onClick={() => app.clearError()}>
-                    <CloseIcon class="size-4" />
-                  </button>
-                </div>
-              )}
-            </Show>
-
-            <header class="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/10 backdrop-blur-xl md:flex-row md:items-end md:justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                  App-first work planner
-                </p>
-                <h2 class="mt-2 text-3xl font-semibold text-white">
-                  {getViewTitle(app.activeView(), app.projects())}
-                </h2>
-                <p class="mt-2 text-sm text-zinc-400">
-                  {activeCount()} open {activeCount() === 1 ? "task" : "tasks"}
-                </p>
-              </div>
-
-              <Show when={app.activeView().type === "project" && app.activeProject()}>
-                {(projectAccessor) => (
-                  <div class="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      class="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-400"
-                      onClick={() => void app.completeProject(projectAccessor().id)}
-                    >
-                      Complete project
-                    </button>
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-2 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 transition hover:bg-red-500/20"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `Delete project “${projectAccessor().title}”? Tasks will move to Inbox.`
-                          )
-                        ) {
-                          void app.deleteProject(projectAccessor().id);
-                        }
-                      }}
-                    >
-                      <TrashIcon class="size-4" />
-                      <span>Delete project</span>
-                    </button>
-                  </div>
-                )}
-              </Show>
-            </header>
-
-            <QuickAdd inputRef={(element) => (quickAddInput = element)} />
-
-            <Show
-              when={app.isHydrated()}
-              fallback={
-                <div class="rounded-3xl border border-white/10 bg-white/5 p-8 text-sm text-zinc-400">
-                  Loading your local task database…
-                </div>
-              }
-            >
-              <section class="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-black/10 backdrop-blur-xl sm:p-5">
-                <Show
-                  when={activeCount() > 0}
-                  fallback={
-                    <div class="flex min-h-[16rem] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-black/20 px-6 py-10 text-center text-zinc-400">
-                      {getEmptyStateMessage(app.activeView())}
-                    </div>
-                  }
+        <main class="relative min-w-0 flex flex-col">
+          {/* ── error banner ── */}
+          <Show when={app.errorMessage()}>
+            {(message) => (
+              <div
+                class="mx-6 mt-4 flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm"
+                style={{
+                  "border-color": "var(--color-urgency-red)",
+                  "background-color": "var(--color-urgency-red-bg)",
+                  color: "var(--color-urgency-red)",
+                }}
+              >
+                <span>{message()}</span>
+                <button
+                  type="button"
+                  class="shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+                  onClick={() => app.clearError()}
                 >
+                  <CloseIcon class="size-4" />
+                </button>
+              </div>
+            )}
+          </Show>
+
+          <div class="flex-1 px-6 py-6 lg:px-10">
+            <div class="mx-auto flex w-full max-w-2xl flex-col gap-5">
+              {/* ── view header ── */}
+              <header class="flex items-start justify-between gap-4">
+                {/* Left: completion checkbox (project only) + title + count */}
+                <div class="flex min-w-0 items-start gap-3">
+                  <Show when={app.activeView().type === "project" && app.activeProject()}>
+                    {(projectAccessor) => (
+                      <input
+                        type="checkbox"
+                        class="task-checkbox mt-[5px] shrink-0"
+                        style={{ width: "20px", height: "20px" }}
+                        checked={false}
+                        onChange={() => void app.completeProject(projectAccessor().id)}
+                        aria-label={`Complete project ${projectAccessor().title}`}
+                        title="Complete project"
+                      />
+                    )}
+                  </Show>
+                  <div class="min-w-0">
+                    <h2
+                      class="text-2xl font-semibold leading-tight"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      {getViewTitle(app.activeView(), app.projects())}
+                    </h2>
+                    <p class="mt-0.5 text-sm" style={{ color: "var(--color-text-tertiary)" }}>
+                      {activeCount()} open {activeCount() === 1 ? "task" : "tasks"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right: delete button (project only) */}
+                <Show when={app.activeView().type === "project" && app.activeProject()}>
+                  {(projectAccessor) => (
+                    <div class="shrink-0 pt-1">
+                      <button
+                        type="button"
+                        aria-label="Delete project"
+                        title="Delete project"
+                        class="flex size-7 items-center justify-center rounded-lg transition-colors"
+                        style={{
+                          color: "var(--color-text-tertiary)",
+                          "background-color": "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLElement).style.color = "var(--color-urgency-red)";
+                          (e.currentTarget as HTMLElement).style.backgroundColor =
+                            "var(--color-urgency-red-bg)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLElement).style.color =
+                            "var(--color-text-tertiary)";
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                        }}
+                        onClick={() => {
+                          app.showConfirm({
+                            title: "Delete project",
+                            message: `"${projectAccessor().title}" will be deleted. Its tasks will move to Inbox.`,
+                            confirmLabel: "Delete",
+                            onConfirm: () => void app.deleteProject(projectAccessor().id),
+                          });
+                        }}
+                      >
+                        <TrashIcon class="size-4" />
+                      </button>
+                    </div>
+                  )}
+                </Show>
+              </header>
+
+              {/* ── quick add ── */}
+              <QuickAdd inputRef={(el) => (quickAddInput = el)} />
+
+              {/* ── task list ── */}
+              <Show
+                when={app.isHydrated()}
+                fallback={
+                  <p class="py-8 text-sm" style={{ color: "var(--color-text-tertiary)" }}>
+                    Loading your local task database…
+                  </p>
+                }
+              >
+                {/* Active task list — only when there are tasks */}
+                <Show when={activeCount() > 0}>
                   <Switch>
                     <Match when={app.activeView().type === "today"}>
-                      <div class="space-y-6">
+                      <div class="space-y-8">
                         <Show when={app.todaySections().overdue.length > 0}>
                           <SortableTaskList
                             sectionTitle="Overdue"
+                            sectionUrgency="overdue"
                             tasks={app.todaySections().overdue}
                             onReorder={app.reorderTasks}
                           />
@@ -252,7 +296,7 @@ function App() {
                     </Match>
 
                     <Match when={app.activeView().type === "upcoming"}>
-                      <div class="space-y-6">
+                      <div class="space-y-8">
                         <For each={app.upcomingGroups()}>
                           {(group) => (
                             <SortableTaskList
@@ -274,15 +318,43 @@ function App() {
                     </Match>
                   </Switch>
                 </Show>
-              </section>
-            </Show>
+
+                {/* Empty state — separate Show so it animates in independently */}
+                <Show when={activeCount() === 0}>
+                  <div
+                    class="empty-state-message flex min-h-48 items-center justify-center py-12 text-center text-sm"
+                    style={{ color: "var(--color-text-tertiary)" }}
+                  >
+                    {getEmptyStateMessage(app.activeView())}
+                  </div>
+                </Show>
+
+                {/* Completed tasks — project views only */}
+                <Show
+                  when={app.activeView().type === "project" && app.completedViewTasks().length > 0}
+                >
+                  <CompletedTasksSection
+                    tasks={app.completedViewTasks()}
+                    show={showCompleted()}
+                    onToggle={() => setShowCompleted((v) => !v)}
+                    onReopen={(taskId) => void app.reopenTask(taskId)}
+                  />
+                </Show>
+              </Show>
+            </div>
           </div>
         </main>
       </div>
 
+      {/* Backdrop — closes detail panel when clicking outside */}
+      <Show when={app.selectedTaskId()}>
+        <div class="detail-backdrop" onClick={() => app.closeTask()} aria-hidden="true" />
+      </Show>
+
       <DetailPanel />
       <SettingsModal />
       <CommandPalette />
+      <ConfirmModal />
     </div>
   );
 }
