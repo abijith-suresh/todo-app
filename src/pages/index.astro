@@ -1,24 +1,18 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+import PageIntro from "@/features/marketing/components/PageIntro.astro";
+import SiteLayout from "@/layouts/SiteLayout.astro";
 ---
 
-<BaseLayout
+<SiteLayout
   title="todo-app"
   description="A local-first todo app running inside an Astro site with a Solid island at /app."
 >
   <section class="space-y-6">
-    <div class="space-y-3">
-      <p class="text-sm font-medium uppercase tracking-wide text-stone-500">
-        Local-first task management
-      </p>
-      <h1 class="text-4xl font-semibold tracking-tight text-stone-900">
-        A small Astro site around the existing Solid app.
-      </h1>
-      <p class="max-w-2xl text-base leading-7 text-stone-600">
-        The interactive task app now lives at <code>/app</code>. The rest of the site is a minimal
-        Astro shell with a few static pages.
-      </p>
-    </div>
+    <PageIntro
+      eyebrow="Local-first task management"
+      title="A small Astro site around the existing Solid app."
+      description="The interactive task app now lives at /app. The rest of the site is a minimal Astro shell with a few static pages."
+    />
 
     <div class="flex flex-wrap gap-3">
       <a
@@ -35,4 +29,4 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </a>
     </div>
   </section>
-</BaseLayout>
+</SiteLayout>

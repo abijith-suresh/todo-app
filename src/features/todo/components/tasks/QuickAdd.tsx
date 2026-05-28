@@ -1,10 +1,10 @@
 import { type Component, createEffect, createMemo, createSignal } from "solid-js";
 
-import { DatePickerModal } from "./DatePickerModal";
-import { formatDateLabel } from "../lib/date";
-import { getTodayIso, getTomorrowIso } from "../lib/date";
-import { useAppStore } from "../state/app-store";
-import { CalendarClockIcon, CircleIcon, FlagIcon } from "./icons";
+import { formatDateLabel, getTodayIso, getTomorrowIso } from "@/lib/date";
+import { useAppStore } from "@/state/app-store";
+
+import { CalendarClockIcon, CircleIcon, FlagIcon } from "../icons";
+import { DatePickerModal } from "../overlays/DatePickerModal";
 
 interface QuickAddProps {
   inputRef?: (element: HTMLInputElement) => void;

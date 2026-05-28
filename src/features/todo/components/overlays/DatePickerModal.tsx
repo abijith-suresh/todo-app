@@ -1,8 +1,9 @@
 import { type Component, createMemo, createSignal, For, Show } from "solid-js";
 
 import { addDays, format, getDaysInMonth, startOfMonth } from "date-fns";
-import { getTodayIso } from "../lib/date";
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "./icons";
+import { getTodayIso } from "@/lib/date";
+
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "../icons";
 
 interface DatePickerModalProps {
   isOpen: boolean;

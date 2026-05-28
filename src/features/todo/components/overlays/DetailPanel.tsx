@@ -1,8 +1,10 @@
 import { type Component, createEffect, createSignal, For, Show } from "solid-js";
 
+import { IconButton } from "@/components/ui/button";
+import { compareIsoDate, formatDateLabel, getTodayIso } from "@/lib/date";
+import { useAppStore } from "@/state/app-store";
+
 import { DatePickerModal } from "./DatePickerModal";
-import { compareIsoDate, formatDateLabel, getTodayIso } from "../lib/date";
-import { useAppStore } from "../state/app-store";
 import {
   CalendarClockIcon,
   ChevronDownIcon,
@@ -13,7 +15,7 @@ import {
   StarFilledIcon,
   StarIcon,
   TrashIcon,
-} from "./icons";
+} from "../icons";
 
 export const DetailPanel: Component = () => {
   const app = useAppStore();
@@ -81,75 +83,36 @@ export const DetailPanel: Component = () => {
             <>
               {/* Header: close / star / delete */}
               <div class="flex shrink-0 items-center justify-between px-5 pt-4 pb-2">
-                <button
-                  type="button"
-                  class="flex size-7 items-center justify-center rounded-lg transition-colors"
-                  style={{
-                    "background-color": "var(--color-bg-input)",
-                    color: "var(--color-text-secondary)",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor =
-                      "var(--color-border-default)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor =
-                      "var(--color-bg-input)";
-                  }}
+                <IconButton
+                  label="Close task details"
+                  variant="surface"
+                  class="border-none"
                   onClick={() => app.closeTask()}
                 >
                   <CloseIcon class="size-3.5" />
-                </button>
+                </IconButton>
 
                 <div class="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    class="flex size-7 items-center justify-center rounded-lg transition-colors"
-                    style={{
-                      color: task.starred ? "var(--color-star)" : "var(--color-text-tertiary)",
-                      "background-color": task.starred
-                        ? "var(--color-urgency-amber-bg)"
-                        : "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!task.starred) {
-                        (e.currentTarget as HTMLElement).style.color = "var(--color-star)";
-                        (e.currentTarget as HTMLElement).style.backgroundColor =
-                          "var(--color-urgency-amber-bg)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!task.starred) {
-                        (e.currentTarget as HTMLElement).style.color = "var(--color-text-tertiary)";
-                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-                      }
-                    }}
+                  <IconButton
+                    label={task.starred ? "Unstar task" : "Star task"}
+                    variant="ghost"
+                    class={
+                      task.starred
+                        ? "bg-[var(--color-urgency-amber-bg)] text-[var(--color-star)] hover:bg-[var(--color-urgency-amber-bg)] hover:text-[var(--color-star)]"
+                        : "hover:bg-[var(--color-urgency-amber-bg)] hover:text-[var(--color-star)]"
+                    }
                     onClick={() => void app.toggleTaskStar(task.id)}
-                    aria-label={task.starred ? "Unstar task" : "Star task"}
                   >
                     {task.starred ? (
                       <StarFilledIcon class="size-3.5" />
                     ) : (
                       <StarIcon class="size-3.5" />
                     )}
-                  </button>
+                  </IconButton>
 
-                  <button
-                    type="button"
-                    class="flex size-7 items-center justify-center rounded-lg transition-colors"
-                    style={{
-                      color: "var(--color-text-tertiary)",
-                      "background-color": "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.color = "var(--color-urgency-red)";
-                      (e.currentTarget as HTMLElement).style.backgroundColor =
-                        "var(--color-urgency-red-bg)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.color = "var(--color-text-tertiary)";
-                      (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-                    }}
+                  <IconButton
+                    label="Delete task"
+                    variant="dangerGhost"
                     onClick={() => {
                       app.showConfirm({
                         title: "Delete task",
@@ -158,10 +121,9 @@ export const DetailPanel: Component = () => {
                         onConfirm: () => void app.deleteTask(task.id),
                       });
                     }}
-                    aria-label="Delete task"
                   >
                     <TrashIcon class="size-3.5" />
-                  </button>
+                  </IconButton>
                 </div>
               </div>
 

@@ -1,0 +1,30 @@
+---
+import SiteHeader from "@/features/marketing/components/SiteHeader.astro";
+import "@/styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "A local-first todo app built with Astro and a Solid island." } =
+  Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <div class="min-h-screen">
+      <SiteHeader />
+      <main class="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

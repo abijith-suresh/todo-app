@@ -8,8 +8,9 @@ import {
 } from "@thisbeyond/solid-dnd";
 import { type Component, createMemo, For, Show } from "solid-js";
 
-import { moveArrayItem } from "../lib/view-model";
-import type { Task } from "../types";
+import { moveArrayItem } from "@/lib/view-model";
+import type { Task } from "@/types";
+
 import { TaskRow } from "./TaskRow";
 
 interface SortableTaskListProps {

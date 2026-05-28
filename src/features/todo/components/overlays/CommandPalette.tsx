@@ -1,8 +1,9 @@
 import { type Component, createEffect, createSignal, For, Show } from "solid-js";
 
-import { formatDateLabel } from "../lib/date";
-import { useAppStore } from "../state/app-store";
-import { SearchIcon } from "./icons";
+import { formatDateLabel } from "@/lib/date";
+import { useAppStore } from "@/state/app-store";
+
+import { SearchIcon } from "../icons";
 
 export const CommandPalette: Component = () => {
   const app = useAppStore();
