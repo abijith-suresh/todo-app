@@ -31,6 +31,8 @@ bun run verify
 
 - Static output via Astro
 - `vercel.json` is configured for Bun + static hosting
+- The repository is linked to Vercel and live at `https://todo-app-tau-red-68.vercel.app`
+- The GitHub repository homepage now points at the live deployment
 
 ## Releases
 
