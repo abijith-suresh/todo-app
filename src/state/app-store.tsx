@@ -146,7 +146,7 @@ export const AppProvider: ParentComponent = (props) => {
   const [confirmState, setConfirmState] = createSignal<ConfirmState | null>(null);
 
   // Non-reactive map of taskId → pending completion timeout ID
-  const completionTimers = new Map<string, ReturnType<typeof window.setTimeout>>();
+  const completionTimers = new Map<string, ReturnType<typeof globalThis.setTimeout>>();
 
   const showConfirm = (state: ConfirmState): void => {
     setConfirmState(state);
@@ -155,15 +155,15 @@ export const AppProvider: ParentComponent = (props) => {
     setConfirmState(null);
   };
 
-  let errorTimeout: number | undefined;
+  let errorTimeout: ReturnType<typeof globalThis.setTimeout> | undefined;
 
   const reportError = (message: string): void => {
     setErrorMessage(message);
-    window.clearTimeout(errorTimeout);
-    errorTimeout = window.setTimeout(() => setErrorMessage(null), 5000);
+    globalThis.clearTimeout(errorTimeout);
+    errorTimeout = globalThis.setTimeout(() => setErrorMessage(null), 5000);
   };
 
-  onCleanup(() => window.clearTimeout(errorTimeout));
+  onCleanup(() => globalThis.clearTimeout(errorTimeout));
 
   const setActiveView = (view: AppView): void => {
     if (view.type === "project") {
@@ -395,7 +395,7 @@ export const AppProvider: ParentComponent = (props) => {
   const cancelComplete = (taskId: string): void => {
     const timerId = completionTimers.get(taskId);
     if (timerId !== undefined) {
-      window.clearTimeout(timerId);
+      globalThis.clearTimeout(timerId);
       completionTimers.delete(taskId);
     }
     setCompletingTaskIds((ids) => ids.filter((id) => id !== taskId));
@@ -409,7 +409,7 @@ export const AppProvider: ParentComponent = (props) => {
     setCompletingTaskIds((current) => [...current, taskId]);
 
     // eslint-disable-next-line solid/reactivity
-    const timerId = window.setTimeout(async () => {
+    const timerId = globalThis.setTimeout(async () => {
       completionTimers.delete(taskId);
       const current = untrack(tasks);
       const existing = current.find((task) => task.id === taskId);

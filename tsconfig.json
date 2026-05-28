@@ -1,4 +1,10 @@
 {
-  "files": [],
-  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "jsxImportSource": "solid-js",
+    "types": ["node", "vite/client"]
+  },
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
 }
