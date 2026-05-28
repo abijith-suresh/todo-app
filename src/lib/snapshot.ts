@@ -52,6 +52,104 @@ const hasPreferencesShape = (value: unknown): value is Preferences => {
   return value.theme === "system" || value.theme === "light" || value.theme === "dark";
 };
 
+const isValidDateString = (value: string): boolean => !Number.isNaN(Date.parse(value));
+
+const isValidIsoDateOnly = (value: string): boolean => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+};
+
+const isValidIsoTimestamp = (value: string): boolean => {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})$/.test(value)) {
+    return false;
+  }
+
+  return isValidDateString(value);
+};
+
+const isNonBlank = (value: string): boolean => value.trim().length > 0;
+
+const assertUniqueIds = (items: Array<{ id: string }>, label: "task" | "project"): void => {
+  const seen = new Set<string>();
+
+  for (const item of items) {
+    if (seen.has(item.id)) {
+      throw new Error(`Import file contains duplicate ${label} id: ${item.id}`);
+    }
+
+    seen.add(item.id);
+  }
+};
+
+const validateStatusTimestamps = (
+  item: Pick<Task | Project, "status" | "completedAt">,
+  label: "Task" | "Project"
+): void => {
+  if (item.status === "open" && item.completedAt !== null) {
+    throw new Error(`${label} completion status is inconsistent.`);
+  }
+
+  if (item.status === "completed" && item.completedAt === null) {
+    throw new Error(`${label} completion status is inconsistent.`);
+  }
+};
+
+const validateTask = (task: Task, projectIds: Set<string>): void => {
+  if (!isNonBlank(task.id) || !isNonBlank(task.title)) {
+    throw new Error("Import file contains invalid tasks.");
+  }
+
+  if (!Number.isFinite(task.sortOrder)) {
+    throw new Error(`Import file contains invalid task sort order: ${task.id}`);
+  }
+
+  if (!isValidIsoTimestamp(task.createdAt) || !isValidIsoTimestamp(task.updatedAt)) {
+    throw new Error(`Import file contains invalid task timestamp: ${task.id}`);
+  }
+
+  if (task.completedAt !== null && !isValidIsoTimestamp(task.completedAt)) {
+    throw new Error(`Import file contains invalid task timestamp: ${task.id}`);
+  }
+
+  if (task.whenDate !== null && !isValidIsoDateOnly(task.whenDate)) {
+    throw new Error(`Import file contains invalid task date: ${task.id}`);
+  }
+
+  if (task.dueDate !== null && !isValidIsoDateOnly(task.dueDate)) {
+    throw new Error(`Import file contains invalid task date: ${task.id}`);
+  }
+
+  if (task.projectId !== null && !projectIds.has(task.projectId)) {
+    throw new Error(`Import file contains dangling project reference: ${task.id}`);
+  }
+
+  validateStatusTimestamps(task, "Task");
+};
+
+const validateProject = (project: Project): void => {
+  if (!isNonBlank(project.id) || !isNonBlank(project.title)) {
+    throw new Error("Import file contains invalid projects.");
+  }
+
+  if (!Number.isFinite(project.sortOrder)) {
+    throw new Error(`Import file contains invalid project sort order: ${project.id}`);
+  }
+
+  if (!isValidIsoTimestamp(project.createdAt) || !isValidIsoTimestamp(project.updatedAt)) {
+    throw new Error(`Import file contains invalid project timestamp: ${project.id}`);
+  }
+
+  if (project.completedAt !== null && !isValidIsoTimestamp(project.completedAt)) {
+    throw new Error(`Import file contains invalid project timestamp: ${project.id}`);
+  }
+
+  validateStatusTimestamps(project, "Project");
+};
+
 export const createSnapshot = (data: {
   tasks: Task[];
   projects: Project[];
@@ -84,6 +182,18 @@ export const parseSnapshot = (value: unknown): ExportSnapshot => {
   if (!hasPreferencesShape(value.preferences)) {
     throw new Error("Import file contains invalid preferences.");
   }
+
+  if (typeof value.exportedAt === "string" && !isValidIsoTimestamp(value.exportedAt)) {
+    throw new Error("Import file contains invalid export timestamp.");
+  }
+
+  assertUniqueIds(value.tasks, "task");
+  assertUniqueIds(value.projects, "project");
+
+  const projectIds = new Set(value.projects.map((project) => project.id));
+
+  value.projects.forEach(validateProject);
+  value.tasks.forEach((task) => validateTask(task, projectIds));
 
   return {
     version: 1,

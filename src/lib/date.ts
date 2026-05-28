@@ -1,9 +1,11 @@
 import { addDays, format, isToday, isTomorrow, isYesterday, parseISO } from "date-fns";
 
-export const getTodayIso = (value: Date = new Date()): string => value.toISOString().slice(0, 10);
+const formatLocalDateIso = (value: Date): string => format(value, "yyyy-MM-dd");
+
+export const getTodayIso = (value: Date = new Date()): string => formatLocalDateIso(value);
 
 export const getTomorrowIso = (value: Date = new Date()): string =>
-  addDays(value, 1).toISOString().slice(0, 10);
+  formatLocalDateIso(addDays(value, 1));
 
 export const getNowIso = (): string => new Date().toISOString();
 

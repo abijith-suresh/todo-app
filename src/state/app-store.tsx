@@ -14,6 +14,7 @@ import {
 
 import { compareIsoDate, getNowIso, getTodayIso } from "../lib/date";
 import { createId } from "../lib/id";
+import { completeProjectEntities, deleteProjectEntities } from "../lib/project-mutations";
 import { createSnapshot, parseSnapshot } from "../lib/snapshot";
 import {
   applySubsetOrder,
@@ -549,32 +550,14 @@ export const AppProvider: ParentComponent = (props) => {
     const currentProjects = projects();
     const currentTasks = tasks();
     const now = getNowIso();
-
-    const nextProjects = sortProjects(
-      currentProjects.map((project) =>
-        project.id === projectId
-          ? {
-              ...project,
-              status: "completed",
-              completedAt: now,
-              updatedAt: now,
-            }
-          : project
-      )
-    );
-
-    const nextTasks = sortTasks(
-      currentTasks.map((task) =>
-        task.projectId === projectId && task.status === "open"
-          ? {
-              ...task,
-              status: "completed",
-              completedAt: now,
-              updatedAt: now,
-            }
-          : task
-      )
-    );
+    const nextState = completeProjectEntities({
+      projectId,
+      now,
+      projects: currentProjects,
+      tasks: currentTasks,
+    });
+    const nextProjects = sortProjects(nextState.projects);
+    const nextTasks = sortTasks(nextState.tasks);
 
     setProjects(nextProjects);
     setTasks(nextTasks);
@@ -605,18 +588,14 @@ export const AppProvider: ParentComponent = (props) => {
     const currentProjects = projects();
     const currentTasks = tasks();
     const now = getNowIso();
-    const nextProjects = currentProjects.filter((project) => project.id !== projectId);
-    const nextTasks = sortTasks(
-      currentTasks.map((task) =>
-        task.projectId === projectId
-          ? {
-              ...task,
-              projectId: null,
-              updatedAt: now,
-            }
-          : task
-      )
-    );
+    const nextState = deleteProjectEntities({
+      projectId,
+      now,
+      projects: currentProjects,
+      tasks: currentTasks,
+    });
+    const nextProjects = nextState.projects;
+    const nextTasks = sortTasks(nextState.tasks);
 
     setProjects(nextProjects);
     setTasks(nextTasks);

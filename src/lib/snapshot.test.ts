@@ -64,4 +64,126 @@ describe("snapshot", () => {
       })
     ).toThrow(/invalid tasks/i);
   });
+
+  it("rejects duplicate task ids", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [task, { ...task }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/duplicate task id/i);
+  });
+
+  it("rejects tasks that reference a missing project", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, projectId: "missing-project" }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/dangling project reference/i);
+  });
+
+  it("rejects invalid task date strings", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, whenDate: "2026-99-99" }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/invalid task date/i);
+  });
+
+  it("rejects impossible calendar dates", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, dueDate: "2026-02-31" }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/invalid task date/i);
+  });
+
+  it("rejects invalid task timestamp strings", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, updatedAt: "not-a-date" }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/invalid task timestamp/i);
+  });
+
+  it("rejects non-finite task sort orders", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, sortOrder: Number.POSITIVE_INFINITY }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/invalid task sort order/i);
+  });
+
+  it("rejects blank titles", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, title: "   " }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/invalid tasks/i);
+  });
+
+  it("rejects inconsistent completed task state", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, status: "completed", completedAt: null }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/completion status is inconsistent/i);
+  });
+
+  it("rejects duplicate project ids", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [task],
+        projects: [project, { ...project }],
+        preferences,
+      })
+    ).toThrow(/duplicate project id/i);
+  });
+
+  it("rejects invalid export timestamps", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [task],
+        projects: [project],
+        preferences,
+        exportedAt: "not-a-date",
+      })
+    ).toThrow(/invalid export timestamp/i);
+  });
+
+  it("rejects timestamps that are not ISO datetimes", () => {
+    expect(() =>
+      parseSnapshot({
+        version: 1,
+        tasks: [{ ...task, updatedAt: "2026-04-19" }],
+        projects: [project],
+        preferences,
+      })
+    ).toThrow(/invalid task timestamp/i);
+  });
 });
