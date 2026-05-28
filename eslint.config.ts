@@ -1,26 +1,29 @@
 import js from "@eslint/js";
+import astro from "eslint-plugin-astro";
 import eslintConfigPrettier from "eslint-config-prettier";
-import jsxA11y from "eslint-plugin-jsx-a11y";
 import solid from "eslint-plugin-solid";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
+export default [
   {
-    ignores: ["dist", "coverage", "node_modules"],
+    ignores: ["dist", "coverage", "node_modules", ".astro"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  solid.configs["flat/recommended"],
-  jsxA11y.flatConfigs.recommended,
+  ...astro.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
+    plugins: {
+      solid,
+    },
     languageOptions: {
       globals: {
         ...globals.browser,
       },
     },
     rules: {
+      ...solid.configs["flat/recommended"].rules,
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -43,6 +46,14 @@ export default tseslint.config(
     },
   },
   {
+    files: ["**/*.astro"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+  },
+  {
     files: ["**/*.config.{js,cjs,mjs,ts}", "*.config.{js,cjs,mjs,ts}", "eslint.config.ts"],
     languageOptions: {
       globals: {
@@ -59,5 +70,5 @@ export default tseslint.config(
       },
     },
   },
-  eslintConfigPrettier
-);
+  eslintConfigPrettier,
+];

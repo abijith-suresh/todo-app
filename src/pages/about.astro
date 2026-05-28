@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="About | todo-app"
+  description="About the Astro migration and the local-first todo app."
+>
+  <section class="max-w-3xl space-y-4">
+    <h1 class="text-3xl font-semibold tracking-tight text-stone-900">About</h1>
+    <p class="text-base leading-7 text-stone-600">
+      todo-app is a local-first task manager. Tasks, projects, and preferences stay in the browser,
+      and the existing Solid application continues to handle the interactive experience.
+    </p>
+    <p class="text-base leading-7 text-stone-600">
+      This PR moves the site to Astro so the project can support simple content pages alongside the
+      app without rewriting the app itself.
+    </p>
+  </section>
+</BaseLayout>
