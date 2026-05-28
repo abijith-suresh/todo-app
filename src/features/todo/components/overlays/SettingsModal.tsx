@@ -1,8 +1,10 @@
 import { type Component, For, Show } from "solid-js";
 
-import { useAppStore } from "../state/app-store";
-import type { ThemeMode } from "../types";
-import { CloseIcon } from "./icons";
+import { Button, IconButton } from "@/components/ui/button";
+import { useAppStore } from "@/state/app-store";
+import type { ThemeMode } from "@/types";
+
+import { CloseIcon } from "../icons";
 
 const shortcuts: [string, string][] = [
   ["New task", "N"],
@@ -51,25 +53,14 @@ export const SettingsModal: Component = () => {
             <h2 class="text-sm font-semibold" style={{ color: "var(--color-text-primary)" }}>
               Settings
             </h2>
-            <button
-              type="button"
-              class="flex size-6 items-center justify-center rounded-md transition-colors"
-              style={{
-                color: "var(--color-text-tertiary)",
-                "background-color": "transparent",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
-                (e.currentTarget as HTMLElement).style.color = "var(--color-text-secondary)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-                (e.currentTarget as HTMLElement).style.color = "var(--color-text-tertiary)";
-              }}
+            <IconButton
+              label="Close settings"
+              size="iconSm"
+              variant="ghost"
               onClick={() => app.closeSettings()}
             >
               <CloseIcon class="size-3.5" />
-            </button>
+            </IconButton>
           </div>
 
           {/* Scrollable body */}
@@ -127,34 +118,12 @@ export const SettingsModal: Component = () => {
                 Export a versioned JSON backup, or replace all data from a previous snapshot.
               </p>
               <div class="flex gap-2">
-                <button
-                  type="button"
-                  class="rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-85"
-                  style={{ "background-color": "var(--color-accent)" }}
-                  onClick={() => app.exportData()}
-                >
+                <Button variant="accent" size="sm" onClick={() => app.exportData()}>
                   Export
-                </button>
-                <button
-                  type="button"
-                  class="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-                  style={{
-                    "background-color": "var(--color-bg-input)",
-                    color: "var(--color-text-secondary)",
-                    border: "1px solid var(--color-border-default)",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "var(--color-border-focus)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "var(--color-border-default)";
-                  }}
-                  onClick={() => fileInput?.click()}
-                >
+                </Button>
+                <Button variant="surface" size="sm" onClick={() => fileInput?.click()}>
                   Import
-                </button>
+                </Button>
                 <input
                   ref={(el) => {
                     fileInput = el;

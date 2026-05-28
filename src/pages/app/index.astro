@@ -1,16 +1,15 @@
 ---
-import AppIsland from "../components/AppIsland";
-import BaseLayout from "../layouts/BaseLayout.astro";
+import TodoAppIsland from "@/islands/todo-app-island";
+import AppLayout from "@/layouts/AppLayout.astro";
 ---
 
-<BaseLayout
+<AppLayout
   title="App | todo-app"
   description="The existing Solid todo app mounted as a client-only Astro island."
-  showChrome={false}
 >
-  <AppIsland client:only="solid-js">
+  <TodoAppIsland client:only="solid-js">
     <div class="flex min-h-screen items-center justify-center px-6 text-sm text-stone-600">
       Loading the app...
     </div>
-  </AppIsland>
-</BaseLayout>
+  </TodoAppIsland>
+</AppLayout>

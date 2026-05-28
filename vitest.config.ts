@@ -1,13 +1,18 @@
-import { defineConfig } from "vitest/config";
+import { fileURLToPath } from "node:url";
+
 import tailwindcss from "@tailwindcss/vite";
 import solid from "vite-plugin-solid";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [solid(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
   test: {
-    environment: "jsdom",
+    environment: "node",
     globals: true,
-    setupFiles: ["./src/test/setup.ts"],
-    css: true,
   },
 });

@@ -1,6 +1,7 @@
 import { type Component, onMount, Show } from "solid-js";
 
-import { useAppStore } from "../state/app-store";
+import { Button } from "@/components/ui/button";
+import { useAppStore } from "@/state/app-store";
 
 export const ConfirmModal: Component = () => {
   const app = useAppStore();
@@ -49,41 +50,27 @@ export const ConfirmModal: Component = () => {
               </p>
 
               <div class="flex items-center justify-end gap-2">
-                <button
+                <Button
                   ref={(el) => {
                     cancelRef = el;
                   }}
-                  type="button"
-                  class="rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors"
-                  style={{
-                    "background-color": "var(--color-bg-input)",
-                    color: "var(--color-text-secondary)",
-                    border: "1px solid var(--color-border-default)",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "var(--color-border-focus)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.borderColor =
-                      "var(--color-border-default)";
-                  }}
+                  variant="surface"
+                  size="sm"
                   onClick={() => app.dismissConfirm()}
                 >
                   Cancel
-                </button>
+                </Button>
 
-                <button
-                  type="button"
-                  class="rounded-lg px-3.5 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-85"
-                  style={{ "background-color": "var(--color-urgency-red)" }}
+                <Button
+                  variant="danger"
+                  size="sm"
                   onClick={() => {
                     state.onConfirm();
                     app.dismissConfirm();
                   }}
                 >
                   {state.confirmLabel ?? "Confirm"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

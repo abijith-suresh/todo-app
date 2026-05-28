@@ -10,9 +10,10 @@ import {
 import { type Component, createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 
-import { moveArrayItem } from "../lib/view-model";
-import { useAppStore } from "../state/app-store";
-import type { AppView, Project } from "../types";
+import { moveArrayItem } from "@/lib/view-model";
+import { useAppStore } from "@/state/app-store";
+import type { AppView, Project } from "@/types";
+
 import {
   FolderIcon,
   InboxIcon,
@@ -21,7 +22,7 @@ import {
   SettingsIcon,
   TodayIcon,
   UpcomingIcon,
-} from "./icons";
+} from "../icons";
 
 // ── Per-item icon colour tints ──────────────────────────────────────────────
 

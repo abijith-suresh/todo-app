@@ -1,9 +1,13 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
+    "baseUrl": ".",
     "ignoreDeprecations": "6.0",
     "jsxImportSource": "solid-js",
-    "types": ["node", "vite/client"]
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": ["node"]
   },
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"]

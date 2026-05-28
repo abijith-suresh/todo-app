@@ -1,8 +1,9 @@
 import { type Component, createSignal, For } from "solid-js";
 
-import { formatDateLabel } from "../lib/date";
-import type { Task } from "../types";
-import { ChevronDownIcon, Undo2Icon } from "./icons";
+import { formatDateLabel } from "@/lib/date";
+import type { Task } from "@/types";
+
+import { ChevronDownIcon, Undo2Icon } from "../icons";
 
 interface CompletedTasksSectionProps {
   tasks: Task[];

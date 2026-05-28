@@ -1,10 +1,11 @@
 import { createSortable, transformStyle } from "@thisbeyond/solid-dnd";
 import { type Component, createMemo } from "solid-js";
 
-import { getTaskUrgency } from "../lib/view-model";
-import { useAppStore } from "../state/app-store";
-import type { Task } from "../types";
-import { FlagIcon, StarFilledIcon, StarIcon } from "./icons";
+import { getTaskUrgency } from "@/lib/view-model";
+import { useAppStore } from "@/state/app-store";
+import type { Task } from "@/types";
+
+import { FlagIcon, StarFilledIcon, StarIcon } from "../icons";
 
 interface TaskRowProps {
   task: Task;
