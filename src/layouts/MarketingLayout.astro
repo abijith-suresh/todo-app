@@ -233,7 +233,7 @@ const navItems = [
       /* ============================================
        Buttons
        ============================================ */
-      .btn {
+      :global(.btn) {
         font-family: var(--font-body);
         font-size: 0.9375rem;
         font-weight: 500;
@@ -247,25 +247,25 @@ const navItems = [
         border: none;
       }
 
-      .btn-primary {
+      :global(.btn-primary) {
         background: var(--accent);
         color: var(--bg-paper);
         box-shadow: var(--shadow-soft);
       }
 
-      .btn-primary:hover {
+      :global(.btn-primary):hover {
         background: var(--accent-hover);
         box-shadow: var(--shadow-medium);
         transform: translateY(-2px);
       }
 
-      .btn-secondary {
+      :global(.btn-secondary) {
         background: transparent;
         color: var(--text-secondary);
         border: 1.5px solid var(--border);
       }
 
-      .btn-secondary:hover {
+      :global(.btn-secondary):hover {
         border-color: var(--text-secondary);
         color: var(--text-primary);
         transform: translateY(-2px);
@@ -274,26 +274,26 @@ const navItems = [
       /* ============================================
        Sections
        ============================================ */
-      .section {
+      :global(.section) {
         padding: 7rem 2rem;
         position: relative;
       }
 
-      .section-inner {
+      :global(.section-inner) {
         max-width: 1000px;
         margin: 0 auto;
       }
 
-      .section-light {
+      :global(.section-light) {
         background: var(--bg-warm);
       }
 
-      .section-accent {
+      :global(.section-accent) {
         background: var(--bg-accent);
         color: var(--bg-paper);
       }
 
-      .section-number {
+      :global(.section-number) {
         font-family: var(--font-display);
         font-size: 0.875rem;
         color: var(--accent);
@@ -302,11 +302,11 @@ const navItems = [
         margin-bottom: 0.75rem;
       }
 
-      .section-accent .section-number {
+      :global(.section-accent .section-number) {
         color: rgba(250, 249, 246, 0.5);
       }
 
-      .section-title {
+      :global(.section-title) {
         font-family: var(--font-display);
         font-size: clamp(2rem, 4vw, 3rem);
         font-weight: 400;
@@ -315,7 +315,7 @@ const navItems = [
         margin-bottom: 3rem;
       }
 
-      .section-accent .section-title {
+      :global(.section-accent .section-title) {
         color: var(--bg-paper);
       }
 
@@ -391,7 +391,7 @@ const navItems = [
        Responsive
        ============================================ */
       @media (max-width: 900px) {
-        .section {
+        :global(.section) {
           padding: 5rem 1.5rem;
         }
       }
