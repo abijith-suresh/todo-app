@@ -1,0 +1,37 @@
+---
+import SectionInner from "../atoms/SectionInner.astro";
+---
+
+<section class="px-8 py-28 max-lg:py-20 max-sm:px-5 relative bg-mk-accent-bg text-mk-paper">
+  <SectionInner>
+    <div class="grid grid-cols-[1.2fr_0.8fr] gap-16 items-center max-lg:grid-cols-1 max-lg:gap-8">
+      <div class="animate-mk-fade-in-up duration-[800ms] delay-[100ms]">
+        <span class="font-mk-display text-sm tracking-wider block mb-3 text-mk-accent">03</span>
+        <h2
+          class="font-mk-display text-[clamp(2rem,4vw,3rem)] font-normal leading-[1.15] tracking-tight text-mk-paper mb-12"
+        >
+          Built for focus
+        </h2>
+        <p
+          class="font-mk-body text-base font-light leading-relaxed text-[rgba(250,249,246,0.65)] mb-4"
+        >
+          No notifications. No due-date anxiety. No complex project hierarchies. Just a single,
+          peaceful space for the things you intend to do today.
+        </p>
+        <p class="font-mk-body text-base font-light leading-relaxed text-[rgba(250,249,246,0.65)]">
+          If you need more, you already have the right tools. This is for everything else.
+        </p>
+      </div>
+      <div
+        class="flex justify-end max-lg:justify-start animate-mk-fade-in-up duration-[800ms] delay-[300ms]"
+      >
+        <a
+          href="/app"
+          class="inline-flex items-center justify-center px-8 py-[0.9rem] font-mk-body text-[0.9375rem] font-medium rounded-[2px] transition-all duration-300 ease-out cursor-pointer bg-mk-paper text-mk-accent shadow-mk-soft hover:bg-[rgba(250,249,246,0.9)] hover:text-mk-accent-hover hover:shadow-mk-medium hover:-translate-y-0.5"
+        >
+          Open the App
+        </a>
+      </div>
+    </div>
+  </SectionInner>
+</section>

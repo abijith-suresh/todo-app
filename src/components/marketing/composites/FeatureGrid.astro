@@ -1,0 +1,32 @@
+---
+import SectionInner from "../atoms/SectionInner.astro";
+
+const featureItems = [
+  "Inbox, Today, Upcoming, and project views",
+  "Independent when and due dates",
+  "IndexedDB-backed local storage",
+  "Keyboard shortcuts, fuzzy search, and quick add",
+  "Project and task ordering with drag and drop",
+  "Theme toggle plus JSON import and export",
+];
+---
+
+<section class="px-8 py-28 max-lg:py-20 max-sm:px-5 relative bg-mk-warm">
+  <SectionInner>
+    <div class="grid grid-cols-2 gap-6 max-lg:grid-cols-1">
+      {
+        featureItems.map((item, i) => (
+          <div
+            class="bg-mk-paper p-8 rounded-[2px] border border-mk-border-light animate-mk-fade-in-up duration-[700ms] transition-transform duration-300 hover:-translate-y-1 hover:shadow-mk-soft max-sm:p-6"
+            style={`animation-delay: ${100 + i * 100}ms`}
+          >
+            <span class="font-mk-display text-sm text-mk-accent tracking-wider block mb-3">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <p class="font-mk-body text-base font-normal leading-relaxed text-mk-text">{item}</p>
+          </div>
+        ))
+      }
+    </div>
+  </SectionInner>
+</section>
