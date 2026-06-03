@@ -11,8 +11,11 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const app = useAppStore();
   const [isEditing, setIsEditing] = createSignal(false);
   const [editTitle, setEditTitle] = createSignal("");
+  const [exitType, setExitType] = createSignal<null | "complete" | "delete">(null);
 
   const isFocused = createMemo(() => app.focusedTaskId() === props.task.id);
+
+  let exitTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const startEdit = (): void => {
     setEditTitle(props.task.title);
@@ -31,27 +34,38 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
     setIsEditing(false);
   };
 
+  const handleComplete = (): void => {
+    setExitType("complete");
+    exitTimeout = setTimeout(() => {
+      exitTimeout = null;
+      void app.completeTask(props.task.id);
+    }, 200);
+  };
+
+  const handleDelete = (event: MouseEvent): void => {
+    event.stopPropagation();
+    setExitType("delete");
+    exitTimeout = setTimeout(() => {
+      exitTimeout = null;
+      void app.deleteTask(props.task.id);
+    }, 200);
+  };
+
   onCleanup(() => {
     setIsEditing(false);
+    if (exitTimeout) clearTimeout(exitTimeout);
   });
 
   return (
     <div
-      class="group flex items-center gap-3 py-4"
-      style={{
-        "border-bottom": "1px solid var(--color-border-subtle)",
-        "background-color": isFocused() ? "var(--color-bg-surface)" : "transparent",
+      class="group flex items-center gap-3 py-4 task-row"
+      classList={{
+        "task-exit-complete": exitType() === "complete",
+        "task-exit-delete": exitType() === "delete",
+        "task-enter": !exitType(),
       }}
-      onMouseEnter={(e) => {
-        if (!isFocused()) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-surface)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isFocused()) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-        }
-      }}
+      style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
+      data-focused={isFocused() ? "true" : undefined}
       onFocus={() => app.setFocusedTaskId(props.task.id)}
       tabIndex={0}
     >
@@ -59,7 +73,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         type="checkbox"
         aria-label={`Complete ${props.task.title}`}
         class="task-checkbox shrink-0"
-        onChange={() => void app.completeTask(props.task.id)}
+        onChange={handleComplete}
       />
 
       <Show
@@ -103,10 +117,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         aria-label={`Delete ${props.task.title}`}
         class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
         style={{ color: "var(--color-text-tertiary)" }}
-        onClick={(event) => {
-          event.stopPropagation();
-          void app.deleteTask(props.task.id);
-        }}
+        onClick={handleDelete}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

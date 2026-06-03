@@ -1,12 +1,16 @@
-import { type Component, createEffect, createSignal, For, Show } from "solid-js";
+import { type Component, createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 
 import { useAppStore } from "@/state/app-store";
 
 export const CommandPalette: Component = () => {
   const app = useAppStore();
   const [activeIndex, setActiveIndex] = createSignal(0);
+  const [isMounted, setIsMounted] = createSignal(false);
+  const [isVisible, setIsVisible] = createSignal(false);
 
   let input: HTMLInputElement | undefined;
+  let dialogRef: HTMLDivElement | undefined;
+  let closeTimer: ReturnType<typeof setTimeout> | null = null;
 
   const flatResults = () => {
     const groups = app.searchResults();
@@ -20,9 +24,37 @@ export const CommandPalette: Component = () => {
   };
 
   createEffect(() => {
+    const originalOverflow = document.body.style.overflow;
     if (app.isSearchOpen()) {
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+      document.body.style.overflow = "hidden";
+      setIsMounted(true);
       setActiveIndex(0);
       queueMicrotask(() => input?.focus());
+
+      const raf = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setIsVisible(true));
+      });
+
+      onCleanup(() => {
+        document.body.style.overflow = originalOverflow;
+        cancelAnimationFrame(raf);
+      });
+    } else {
+      setIsVisible(false);
+      closeTimer = setTimeout(() => {
+        setIsMounted(false);
+        closeTimer = null;
+      }, 200);
+      onCleanup(() => {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+      });
     }
   });
 
@@ -71,30 +103,52 @@ export const CommandPalette: Component = () => {
       event.preventDefault();
       app.closeSearch();
     }
+
+    if (event.key === "Tab" && dialogRef) {
+      event.preventDefault();
+      const focusable = Array.from(
+        dialogRef.querySelectorAll<HTMLElement>("button:not([disabled]), input:not([disabled])")
+      );
+      const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
+      let nextIndex: number;
+      if (event.shiftKey) {
+        nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
+      } else {
+        nextIndex = currentIndex >= focusable.length - 1 ? 0 : currentIndex + 1;
+      }
+      focusable[nextIndex]?.focus();
+    }
   };
 
   return (
-    <Show when={app.isSearchOpen()}>
+    <Show when={isMounted()}>
       <div
-        class="fixed inset-0 z-50 flex items-start justify-center px-4 py-16"
-        style={{ "background-color": "rgba(26, 24, 22, 0.35)" }}
+        class="command-palette-overlay fixed inset-0 z-50 flex items-start justify-center px-4 py-16 sm:py-24"
+        style={{
+          "background-color": "rgba(26, 24, 22, 0.04)",
+          opacity: isVisible() ? 1 : 0,
+        }}
+        onClick={() => app.closeSearch()}
+        role="presentation"
       >
-        <button
-          type="button"
-          class="absolute inset-0"
-          aria-label="Close search"
-          onClick={() => app.closeSearch()}
-        />
-
         <div
+          ref={(el) => {
+            dialogRef = el;
+          }}
           role="dialog"
           aria-modal="true"
+          aria-label="Search tasks"
           tabindex="-1"
-          class="relative z-10 w-full max-w-xl overflow-hidden rounded-lg shadow-2xl"
+          class="command-palette-dialog relative z-10 w-full max-w-xl overflow-hidden"
           style={{
             "background-color": "var(--color-bg-surface)",
-            border: "1px solid var(--color-border-default)",
+            border: "1px solid var(--color-border-subtle)",
+            "box-shadow": "0 4px 24px rgba(26, 24, 22, 0.05), 0 1px 2px rgba(26, 24, 22, 0.03)",
+            "border-radius": "6px",
+            opacity: isVisible() ? 1 : 0,
+            transform: isVisible() ? "scale(1) translateY(0)" : "scale(0.98) translateY(-4px)",
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           <div
             class="flex items-center gap-3 px-4 py-3.5"
@@ -110,6 +164,7 @@ export const CommandPalette: Component = () => {
               stroke-linejoin="round"
               class="size-4 shrink-0"
               style={{ color: "var(--color-text-tertiary)" }}
+              aria-hidden="true"
             >
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
@@ -125,14 +180,35 @@ export const CommandPalette: Component = () => {
               class="w-full bg-transparent text-base outline-none placeholder:italic"
               style={{ color: "var(--color-text-primary)" }}
             />
+            <button
+              type="button"
+              onClick={() => app.closeSearch()}
+              class="shrink-0 rounded-sm p-1.5 transition-colors hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
+              style={{ color: "var(--color-text-tertiary)" }}
+              aria-label="Close search"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="size-4"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
           </div>
 
-          <div class="max-h-80 overflow-y-auto p-2">
+          <div class="max-h-80 overflow-y-auto" role="listbox" aria-label="Search results">
             <Show
-              when={app.searchResults().length > 0 && flatResults().length > 0}
+              when={flatResults().length > 0}
               fallback={
                 <p
-                  class="px-3 py-8 text-center text-base italic"
+                  class="px-4 py-10 text-center text-sm italic"
                   style={{ color: "var(--color-text-tertiary)" }}
                 >
                   {app.searchQuery().trim()
@@ -154,37 +230,43 @@ export const CommandPalette: Component = () => {
                   return (
                     <div>
                       <p
-                        class="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider"
-                        style={{ color: "var(--color-text-tertiary)" }}
+                        class="px-4 pt-3 pb-1 text-xs italic tracking-wide"
+                        style={{
+                          color: "var(--color-text-tertiary)",
+                          "font-family": '"Source Serif 4", Georgia, serif',
+                        }}
                       >
                         {group.label}
                       </p>
                       <For each={groupTasks}>
                         {(task) => {
                           const globalIndex = globalStart + groupTasks.indexOf(task);
+                          const isCompleted = group.label === "Completed";
 
                           return (
                             <button
                               type="button"
-                              class="relative flex w-full items-center rounded-lg px-3 py-2 text-left text-base transition-colors"
+                              class="group flex w-full items-center gap-3 px-4 py-3 text-left text-base transition-colors duration-150"
                               style={{
+                                "border-bottom": "1px solid var(--color-border-subtle)",
                                 "background-color":
                                   activeIndex() === globalIndex
-                                    ? "var(--color-accent-subtle)"
+                                    ? "var(--color-bg-elevated)"
                                     : "transparent",
-                                "border-left":
-                                  activeIndex() === globalIndex
-                                    ? "3px solid var(--color-accent)"
-                                    : "3px solid transparent",
-                                "padding-left":
-                                  activeIndex() === globalIndex ? "calc(0.75rem - 3px)" : "0.75rem",
                               }}
+                              role="option"
+                              aria-selected={activeIndex() === globalIndex}
                               onMouseEnter={() => setActiveIndex(globalIndex)}
                               onClick={() => chooseResult(globalIndex)}
                             >
                               <span
                                 class="min-w-0 flex-1 truncate"
-                                style={{ color: "var(--color-text-primary)" }}
+                                classList={{ "line-through": isCompleted }}
+                                style={{
+                                  color: isCompleted
+                                    ? "var(--color-text-tertiary)"
+                                    : "var(--color-text-primary)",
+                                }}
                               >
                                 {task.title}
                               </span>
@@ -197,6 +279,12 @@ export const CommandPalette: Component = () => {
                 }}
               </For>
             </Show>
+
+            <div class="sr-only" aria-live="polite" aria-atomic="true">
+              {isVisible() && app.searchQuery().trim() && flatResults().length > 0
+                ? `${flatResults().length} result${flatResults().length === 1 ? "" : "s"}`
+                : ""}
+            </div>
           </div>
         </div>
       </div>
