@@ -1,0 +1,63 @@
+---
+import SectionInner from "../atoms/SectionInner.astro";
+---
+
+<section class="px-8 py-28 max-lg:py-20 max-sm:px-5 relative bg-mk-accent-bg text-mk-paper">
+  <SectionInner>
+    <div class="grid grid-cols-[1.2fr_0.8fr] gap-16 items-start max-lg:grid-cols-1 max-lg:gap-8">
+      <div class="animate-mk-fade-in-up duration-[800ms] delay-[100ms]">
+        <span class="font-mk-display text-sm tracking-wider block mb-3 text-mk-accent">02</span>
+        <h2
+          class="font-mk-display text-[clamp(2rem,4vw,3rem)] font-normal leading-[1.15] tracking-tight text-mk-paper mb-12"
+        >
+          Why it matters
+        </h2>
+        <p
+          class="font-mk-display text-[clamp(1.25rem,2vw,1.5rem)] leading-relaxed text-[rgba(250,249,246,0.95)] mb-6"
+        >
+          Most tools want to manage your life. We only want to hold your today&rsquo;s thoughts so
+          you can focus on doing them, not organizing them.
+        </p>
+        <p
+          class="font-mk-body text-base font-light leading-relaxed text-[rgba(250,249,246,0.65)] mb-4"
+        >
+          The best ideas arrive unannounced. The most important tasks rarely have a deadline.
+          todo-app is a single page for a single day &mdash; a scratchpad for the things that matter
+          before they slip into tomorrow&rsquo;s regret.
+        </p>
+        <p class="font-mk-body text-base font-light leading-relaxed text-[rgba(250,249,246,0.65)]">
+          Close it when you&rsquo;re done. Open it when you need it. Nothing more.
+        </p>
+      </div>
+      <div
+        class="flex items-center justify-center pt-8 animate-mk-fade-in-up duration-[800ms] delay-[300ms]"
+      >
+        <blockquote class="relative pl-8 border-l-2 border-[rgba(250,249,246,0.15)] max-lg:pl-6">
+          <p class="font-mk-body text-[1.1rem] italic leading-relaxed text-[rgba(250,249,246,0.8)]">
+            The list you make in the morning is a letter to your future self. Write it kindly.
+          </p>
+        </blockquote>
+      </div>
+    </div>
+  </SectionInner>
+</section>
+
+<style>
+  blockquote::before {
+    font-family: var(--font-mk-display);
+    font-size: 4rem;
+    line-height: 1;
+    color: rgba(250, 249, 246, 0.15);
+    content: "\201C";
+    position: absolute;
+    top: 0.5rem;
+    left: 1.5rem;
+    pointer-events: none;
+  }
+
+  @media (max-width: 900px) {
+    blockquote::before {
+      left: 0.5rem;
+    }
+  }
+</style>
