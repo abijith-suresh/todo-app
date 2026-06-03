@@ -1,0 +1,432 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "A calm scratchpad for today's intentions." } = Astro.props;
+const pathname = Astro.url.pathname;
+
+const navItems = [
+  { href: "/", label: "Home" },
+  { href: "/features", label: "Features" },
+  { href: "/about", label: "About" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,300;1,8..60,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Fixed Header -->
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="/" class="logo">todo-app</a>
+        <nav class="main-nav" aria-label="Primary">
+          {
+            navItems.map((item) => {
+              const isCurrent =
+                pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              return (
+                <a
+                  href={item.href}
+                  class:list={["nav-link", isCurrent && "active"]}
+                  aria-current={isCurrent ? "page" : undefined}
+                >
+                  {item.label}
+                </a>
+              );
+            })
+          }
+        </nav>
+        <a href="/app" class="cta-link">Open App</a>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <span class="footer-logo">todo-app</span>
+          <span class="footer-tagline">A scratchpad for today's intentions.</span>
+        </div>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="/">Home</a>
+          <a href="/features">Features</a>
+          <a href="/about">About</a>
+          <a href="/app">App</a>
+        </nav>
+        <div class="footer-right">
+          <a href="/app" class="footer-cta">Open the App &rarr;</a>
+        </div>
+      </div>
+    </footer>
+
+    <style>
+      /* ============================================
+       CSS Variables
+       ============================================ */
+      :root {
+        --bg-page: #f5f4f0;
+        --bg-paper: #faf9f6;
+        --bg-warm: #edeae3;
+        --bg-accent: #2a3d31;
+        --text-primary: #1a1816;
+        --text-secondary: #5c5854;
+        --text-muted: #8a8680;
+        --accent: #6b2d3a;
+        --accent-hover: #4a1f28;
+        --border: #d9d5cd;
+        --border-light: #e8e5df;
+        --shadow-soft: 0 4px 24px rgba(26, 24, 22, 0.06);
+        --shadow-medium: 0 8px 40px rgba(26, 24, 22, 0.1);
+        --font-display: "DM Serif Display", Georgia, serif;
+        --font-body: "Source Serif 4", Georgia, serif;
+        --radius: 2px;
+      }
+
+      /* ============================================
+       Base & Reset
+       ============================================ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background-color: var(--bg-page);
+        color: var(--text-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      /* ============================================
+       Animations
+       ============================================ */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* ============================================
+       Fixed Header
+       ============================================ */
+      .site-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: rgba(245, 244, 240, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-light);
+        animation: fadeIn 0.6s ease forwards;
+      }
+
+      .header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+      }
+
+      .main-nav {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+      }
+
+      .nav-link {
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--text-secondary);
+        padding: 0.4rem 0.7rem;
+        border-radius: var(--radius);
+        transition: all 0.3s ease;
+      }
+
+      .nav-link:hover {
+        color: var(--text-primary);
+        background: var(--bg-warm);
+      }
+
+      .nav-link.active {
+        color: var(--accent);
+        background: rgba(107, 45, 58, 0.06);
+        font-weight: 500;
+      }
+
+      .cta-link {
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--accent);
+        padding: 0.5rem 1.25rem;
+        border: 1.5px solid var(--accent);
+        border-radius: var(--radius);
+        transition: all 0.3s ease;
+      }
+
+      .cta-link:hover {
+        background: var(--accent);
+        color: var(--bg-paper);
+      }
+
+      /* ============================================
+       Buttons
+       ============================================ */
+      .btn {
+        font-family: var(--font-body);
+        font-size: 0.9375rem;
+        font-weight: 500;
+        padding: 0.9rem 2rem;
+        border-radius: var(--radius);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        cursor: pointer;
+        border: none;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: var(--bg-paper);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+        box-shadow: var(--shadow-medium);
+        transform: translateY(-2px);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1.5px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        border-color: var(--text-secondary);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+      }
+
+      /* ============================================
+       Sections
+       ============================================ */
+      .section {
+        padding: 7rem 2rem;
+        position: relative;
+      }
+
+      .section-inner {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .section-light {
+        background: var(--bg-warm);
+      }
+
+      .section-accent {
+        background: var(--bg-accent);
+        color: var(--bg-paper);
+      }
+
+      .section-number {
+        font-family: var(--font-display);
+        font-size: 0.875rem;
+        color: var(--accent);
+        letter-spacing: 0.05em;
+        display: block;
+        margin-bottom: 0.75rem;
+      }
+
+      .section-accent .section-number {
+        color: rgba(250, 249, 246, 0.5);
+      }
+
+      .section-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 400;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-bottom: 3rem;
+      }
+
+      .section-accent .section-title {
+        color: var(--bg-paper);
+      }
+
+      /* ============================================
+       Footer
+       ============================================ */
+      .site-footer {
+        background: var(--text-primary);
+        color: var(--bg-warm);
+        padding: 3rem 2rem;
+      }
+
+      .footer-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+      }
+
+      .footer-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .footer-logo {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        color: var(--bg-paper);
+      }
+
+      .footer-tagline {
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+      }
+
+      .footer-nav {
+        display: flex;
+        gap: 1.5rem;
+      }
+
+      .footer-nav a {
+        font-family: var(--font-body);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        transition: color 0.3s ease;
+      }
+
+      .footer-nav a:hover {
+        color: var(--bg-paper);
+      }
+
+      .footer-cta {
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--bg-paper);
+        border-bottom: 1px solid rgba(250, 249, 246, 0.2);
+        padding-bottom: 0.1rem;
+        transition: all 0.3s ease;
+      }
+
+      .footer-cta:hover {
+        border-bottom-color: var(--bg-paper);
+      }
+
+      /* ============================================
+       Responsive
+       ============================================ */
+      @media (max-width: 900px) {
+        .section {
+          padding: 5rem 1.5rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .header-inner {
+          padding: 0 1.25rem;
+          height: 56px;
+        }
+
+        .main-nav {
+          gap: 0.1rem;
+        }
+
+        .nav-link {
+          padding: 0.3rem 0.5rem;
+          font-size: 0.8rem;
+        }
+
+        .cta-link {
+          padding: 0.4rem 0.9rem;
+          font-size: 0.8rem;
+        }
+
+        .footer-inner {
+          flex-direction: column;
+          text-align: center;
+          gap: 1rem;
+        }
+
+        .footer-nav {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+      }
+    </style>
+  </body>
+</html>
