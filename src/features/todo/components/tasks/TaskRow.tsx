@@ -39,7 +39,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
     exitTimeout = setTimeout(() => {
       exitTimeout = null;
       void app.completeTask(props.task.id);
-    }, 200);
+    }, 900);
   };
 
   const handleDelete = (event: MouseEvent): void => {
@@ -48,7 +48,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
     exitTimeout = setTimeout(() => {
       exitTimeout = null;
       void app.deleteTask(props.task.id);
-    }, 200);
+    }, 300);
   };
 
   onCleanup(() => {
@@ -56,12 +56,14 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
     if (exitTimeout) clearTimeout(exitTimeout);
   });
 
+  const isExiting = () => exitType() !== null;
+
   return (
     <div
       class="group flex items-center gap-3 py-4 task-row"
       classList={{
-        "task-exit-complete": exitType() === "complete",
-        "task-exit-delete": exitType() === "delete",
+        "task-completing": exitType() === "complete",
+        "task-deleting": exitType() === "delete",
         "task-enter": !exitType(),
       }}
       style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
@@ -74,6 +76,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         aria-label={`Complete ${props.task.title}`}
         class="task-checkbox shrink-0"
         onChange={handleComplete}
+        disabled={isExiting()}
       />
 
       <Show
@@ -107,8 +110,9 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
           class="min-w-0 flex-1 cursor-text text-left text-base"
           style={{ color: "var(--color-text-primary)" }}
           onClick={() => startEdit()}
+          disabled={isExiting()}
         >
-          <span class="truncate block">{props.task.title}</span>
+          <span class="task-text truncate block">{props.task.title}</span>
         </button>
       </Show>
 
@@ -118,6 +122,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
         class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
         style={{ color: "var(--color-text-tertiary)" }}
         onClick={handleDelete}
+        disabled={isExiting()}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -5,7 +5,7 @@ import { useAppStore } from "@/state/app-store";
 import { AppFrame } from "../components/app-shell/AppFrame";
 import { AppTaskContent } from "../components/app-shell/AppTaskContent";
 import { QuickAdd } from "../components/tasks/QuickAdd";
-import { CommandPalette } from "../components/overlays/CommandPalette";
+import { SearchView } from "../components/search/SearchView";
 
 const isEditableTarget = (target: EventTarget | null): boolean => {
   const element = target as HTMLElement | null;
@@ -57,19 +57,38 @@ export default function TodoApp() {
       />
 
       <main class="relative z-10 mx-auto flex min-w-0 max-w-xl flex-col px-6 pt-20 pb-12 sm:pt-28 sm:pb-16">
-        <h1
-          class="mb-10 text-center text-2xl font-normal tracking-tight sm:mb-14"
-          style={{ "font-family": '"DM Serif Display", Georgia, serif' }}
+        {/* Main View */}
+        <div
+          class={app.isSearchOpen() ? "opacity-0 pointer-events-none" : "opacity-100"}
+          style={{
+            position: app.isSearchOpen() ? "absolute" : "relative",
+            transition: "opacity 400ms ease",
+          }}
         >
-          Today&rsquo;s Intentions
-        </h1>
-        <QuickAdd />
-        <div class="mt-10 sm:mt-14">
-          <AppTaskContent />
+          <h1
+            class="mb-10 text-center text-2xl font-normal tracking-tight sm:mb-14"
+            style={{ "font-family": '"DM Serif Display", Georgia, serif' }}
+          >
+            Today&rsquo;s Intentions
+          </h1>
+          <QuickAdd />
+          <div class="mt-10 sm:mt-14">
+            <AppTaskContent />
+          </div>
+        </div>
+
+        {/* Search View */}
+        <div
+          class={
+            app.isSearchOpen()
+              ? "opacity-100 relative"
+              : "opacity-0 pointer-events-none absolute inset-0"
+          }
+          style={{ transition: "opacity 400ms ease" }}
+        >
+          <SearchView />
         </div>
       </main>
-
-      <CommandPalette />
     </AppFrame>
   );
 }

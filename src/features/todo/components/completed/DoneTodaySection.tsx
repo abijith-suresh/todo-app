@@ -1,5 +1,6 @@
 import { type Component, createSignal, For, onCleanup } from "solid-js";
 
+import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
 
 interface DoneTodaySectionProps {
@@ -13,65 +14,64 @@ interface DoneTodayRowProps {
 }
 
 const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
-  const [isExiting, setIsExiting] = createSignal(false);
+  const app = useAppStore();
+  const [exitType, setExitType] = createSignal<null | "reopen" | "delete">(null);
 
   let exitTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const handleReopen = (): void => {
-    setIsExiting(true);
+    setExitType("reopen");
     exitTimeout = setTimeout(() => {
       exitTimeout = null;
       props.onReopen(props.task.id);
-    }, 200);
+    }, 900);
+  };
+
+  const handleDelete = (event: MouseEvent): void => {
+    event.stopPropagation();
+    setExitType("delete");
+    exitTimeout = setTimeout(() => {
+      exitTimeout = null;
+      void app.deleteTask(props.task.id);
+    }, 300);
   };
 
   onCleanup(() => {
     if (exitTimeout) clearTimeout(exitTimeout);
   });
 
+  const isExiting = () => exitType() !== null;
+
   return (
     <div
       class="group flex items-center gap-3 py-3"
       classList={{
-        "task-exit-reopen": isExiting(),
-        "task-enter": !isExiting(),
+        "task-reopening": exitType() === "reopen",
+        "task-deleting": exitType() === "delete",
+        "task-enter": !exitType(),
       }}
       style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
     >
+      <button
+        type="button"
+        aria-label={`Reopen ${props.task.title}`}
+        class="task-checkbox-done shrink-0"
+        onClick={handleReopen}
+        disabled={isExiting()}
+      />
       <span
-        class="shrink-0 flex items-center justify-center rounded-full"
-        style={{
-          width: "16px",
-          height: "16px",
-          "background-color": "var(--color-accent)",
-        }}
-        aria-hidden="true"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="white"
-          stroke-width="3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="size-2.5"
-        >
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      </span>
-      <span
-        class="min-w-0 flex-1 truncate text-base line-through"
+        class="task-text min-w-0 flex-1 truncate text-base line-through"
         style={{ color: "var(--color-text-tertiary)" }}
       >
         {props.task.title}
       </span>
       <button
         type="button"
-        aria-label={`Reopen ${props.task.title}`}
+        aria-label={`Delete ${props.task.title}`}
         class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
         style={{ color: "var(--color-text-tertiary)" }}
-        onClick={handleReopen}
+        onClick={handleDelete}
+        disabled={isExiting()}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -81,10 +81,11 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="size-3"
+          class="size-3.5"
         >
-          <polyline points="1 4 1 10 7 10" />
-          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
         </svg>
       </button>
     </div>
