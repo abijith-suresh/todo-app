@@ -4,7 +4,7 @@
 
 A fast, browser-based tool for capturing things you need to remember at work.
 
-Not a task manager. A short-term holding area. You add something, get back to what you were doing, and the tool manages itself. Old items fade out automatically after 7 days. Nothing is permanently deleted — faded items move to a searchable archive and can be recovered at any time.
+Not a task manager. A short-term holding area. You add something, get back to what you were doing, and the tool manages itself. Old tasks fade out automatically after 7 days. Nothing is permanently deleted — faded tasks move to a searchable archive and can be recovered at any time.
 
 ---
 
@@ -26,7 +26,7 @@ Most tools are either too heavy (task managers with projects, priorities, due da
 
 Capture fast. Get back to what you were doing.
 
-Items stay visible until you mark them done, or they fade out after 7 days. The goal is to keep the view small and focused. The tool should never feel like a graveyard of things you have not done.
+Tasks stay visible until you mark them done, or they fade out after 7 days. The goal is to keep the view small and focused. The tool should never feel like a graveyard of things you have not done.
 
 ---
 
@@ -53,7 +53,7 @@ Someone working primarily on one device who needs to capture small work items qu
 
 A coworker asks me to review a pull request while I am in the middle of something else.
 
-I open the app in a browser tab. The cursor is already in the input. I type `Review payment PR` and press Enter. The item appears. I go back to what I was doing.
+I open the app in a browser tab. The cursor is already in the input. I type `Review payment PR` and press Enter. The task appears. I go back to what I was doing.
 
 Later I come back, mark it done. It stays visible for the rest of today, then disappears tomorrow morning.
 
@@ -63,7 +63,7 @@ Later I come back, mark it done. It stays visible for the rest of today, then di
 
 I add a few things on Monday. By the following Monday I have either done them, forgotten them entirely, or handled them some other way.
 
-At the 7-day mark, unfinished items quietly leave the main view. They are not gone — they are in the archive. But they are out of my way.
+At the 7-day mark, unfinished tasks quietly leave the main view. They are not gone — they are in the archive. But they are out of my way.
 
 I never have to manually clean up.
 

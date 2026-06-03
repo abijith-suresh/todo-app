@@ -28,15 +28,13 @@ Technical and design decisions, with reasoning. Useful context before changing a
 
 ---
 
-## Storage: localStorage
+## Storage: IndexedDB
 
-**Decision:** Use the browser's localStorage API to persist all data.
+**Decision:** Use the browser's IndexedDB API to persist all data.
 
-**Reasoning:** The app is intentionally single-device and browser-based. localStorage is synchronous, requires no setup, and is more than sufficient for the expected dataset size. A typical user will have at most a few dozen items across all states at any time — the aging system prevents unbounded growth.
+**Reasoning:** The app is intentionally single-device and browser-based. IndexedDB provides a larger storage quota than localStorage (~50MB+ vs ~5MB), structured object storage without serialization overhead, and async transactions that don't block the main thread. A typical user will have at most a few dozen tasks across all states at any time — IndexedDB is more than adequate.
 
-**Tradeoff:** localStorage has a ~5MB limit and no query capability. The workaround is loading the full dataset into memory on startup and filtering in JavaScript. This is acceptable at this scale. If the dataset ever grew large enough to make this painful (unlikely), IndexedDB would be the natural migration path.
-
-**Data structure:** Items are stored as a JSON array under a single key (e.g. `items`). The entire array is read on load and written on every change.
+**Data structure:** Tasks are stored in a single object store (`tasks`) keyed by `id`. The entire store is read on startup and individual records are written on each change.
 
 ---
 
@@ -50,7 +48,7 @@ Technical and design decisions, with reasoning. Useful context before changing a
 
 ## Aging window: 7 days
 
-**Decision:** Active items become dormant after 7 days.
+**Decision:** Active tasks become dormant after 7 days.
 
 **Reasoning:** The app is designed for work-context capture — things that come up during a working day. A 7-day window maps naturally to one working week. If something has not been acted on after a week, it has either been handled informally, forgotten, or it belongs in a proper task manager. 14 days was the initial consideration but felt too long for the intended use case.
 
@@ -66,7 +64,7 @@ Technical and design decisions, with reasoning. Useful context before changing a
 
 ## Completion rollover: calendar day
 
-**Decision:** Completed items leave the main view at midnight (device local time), not 24 hours after completion.
+**Decision:** Completed tasks leave the main view at midnight (device local time), not 24 hours after completion.
 
 **Reasoning:** "End of day" is the more natural mental model. A user who completes something at 11pm expects it to be gone in the morning — not at 11pm the following night.
 
@@ -76,20 +74,20 @@ Technical and design decisions, with reasoning. Useful context before changing a
 
 **Decision:** The 7-day aging window is calculated from `activatedAt`, not `createdAt`.
 
-**Reasoning:** When a dormant item is recovered, the aging clock needs to restart from the recovery date. If aging ran from `createdAt`, a recovered item could immediately go dormant again (since its original creation date is days or weeks in the past). `activatedAt` is set on creation and reset on every recovery. `createdAt` is immutable and serves as a permanent record.
+**Reasoning:** When a dormant task is recovered, the aging clock needs to restart from the recovery date. If aging ran from `createdAt`, a recovered task could immediately go dormant again (since its original creation date is days or weeks in the past). `activatedAt` is set on creation and reset on every recovery. `createdAt` is immutable and serves as a permanent record.
 
 ---
 
 ## Recovery resets the aging timer
 
-**Decision:** Recovering a dormant item gives it a fresh 7-day window.
+**Decision:** Recovering a dormant task gives it a fresh 7-day window.
 
-**Reasoning:** Recovery is a deliberate act. The user is choosing to work on this item again. Giving it a full new window respects that intent. Keeping the original timer would make recovery almost pointless for older items.
+**Reasoning:** Recovery is a deliberate act. The user is choosing to work on this task again. Giving it a full new window respects that intent. Keeping the original timer would make recovery almost pointless for older tasks.
 
 ---
 
 ## State transitions on load and tab focus
 
-**Decision:** Aging and midnight rollover checks run on app load and on the `visibilitychange` event when the tab regains focus.
+**Decision:** Aging checks run on app load and on the `visibilitychange` event when the tab regains focus. Completed tasks from previous days are automatically excluded from the main view (filtered by `completedAt` matching today).
 
 **Reasoning:** The app has no background process or server. If a user leaves the tab open overnight, stale state will not self-correct. Running the check whenever the tab becomes visible ensures state is always consistent before anything is rendered or interacted with.
