@@ -46,9 +46,15 @@ export default function TodoApp() {
 
   return (
     <AppFrame>
-      <main class="mx-auto flex min-w-0 max-w-2xl flex-col px-6 py-6 lg:px-10">
+      <main class="mx-auto flex min-w-0 max-w-xl flex-col px-6 pt-20 pb-12 sm:pt-28 sm:pb-16">
+        <h1
+          class="mb-10 text-center text-2xl font-normal tracking-tight sm:mb-14"
+          style={{ "font-family": '"DM Serif Display", Georgia, serif' }}
+        >
+          Today&rsquo;s Intentions
+        </h1>
         <QuickAdd />
-        <div class="mt-6">
+        <div class="mt-10 sm:mt-14">
           <AppTaskContent />
         </div>
       </main>

@@ -8,19 +8,32 @@ interface DoneTodaySectionProps {
 }
 
 export const DoneTodaySection: Component<DoneTodaySectionProps> = (props) => (
-  <div class="mt-6" style={{ "border-top": "1px solid var(--color-border-subtle)" }}>
-    <p class="mt-4 mb-1 text-xs font-medium" style={{ color: "var(--color-text-tertiary)" }}>
+  <div class="mt-16 sm:mt-20">
+    <div
+      class="mx-auto mb-8 w-24"
+      style={{ "border-top": "1px solid var(--color-border-default)" }}
+    />
+    <p
+      class="mb-6 text-xs italic tracking-wide"
+      style={{
+        color: "var(--color-text-tertiary)",
+        "font-family": '"Source Serif 4", Georgia, serif',
+      }}
+    >
       Done today
     </p>
     <div>
       <For each={props.tasks}>
         {(task) => (
-          <div class="flex items-center gap-2.5 py-1.5 px-1">
+          <div
+            class="group flex items-center gap-3 py-3"
+            style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
+          >
             <span
               class="shrink-0 flex items-center justify-center rounded-full"
               style={{
-                width: "17px",
-                height: "17px",
+                width: "16px",
+                height: "16px",
                 "background-color": "var(--color-accent)",
               }}
               aria-hidden="true"
@@ -39,7 +52,7 @@ export const DoneTodaySection: Component<DoneTodaySectionProps> = (props) => (
               </svg>
             </span>
             <span
-              class="min-w-0 flex-1 truncate text-sm line-through"
+              class="min-w-0 flex-1 truncate text-base line-through"
               style={{ color: "var(--color-text-tertiary)" }}
             >
               {task.title}

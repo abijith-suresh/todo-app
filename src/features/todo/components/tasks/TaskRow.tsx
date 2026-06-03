@@ -37,15 +37,14 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
 
   return (
     <div
-      class="group flex items-center gap-2.5 py-2.5 px-1"
+      class="group flex items-center gap-3 py-4"
       style={{
-        "background-color": isFocused() ? "var(--color-accent-subtle)" : "transparent",
-        "border-left": isFocused() ? "3px solid var(--color-accent)" : "3px solid transparent",
-        "padding-left": isFocused() ? "calc(1rem - 3px)" : "1rem",
+        "border-bottom": "1px solid var(--color-border-subtle)",
+        "background-color": isFocused() ? "var(--color-bg-surface)" : "transparent",
       }}
       onMouseEnter={(e) => {
         if (!isFocused()) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
+          (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-surface)";
         }
       }}
       onMouseLeave={(e) => {
@@ -83,7 +82,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
               }
             }}
             onBlur={() => saveEdit()}
-            class="min-w-0 flex-1 bg-transparent text-sm outline-none"
+            class="min-w-0 flex-1 bg-transparent text-base outline-none"
             style={{ color: "var(--color-text-primary)" }}
             autocomplete="off"
           />
@@ -91,7 +90,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
       >
         <button
           type="button"
-          class="min-w-0 flex-1 cursor-text text-left text-sm"
+          class="min-w-0 flex-1 cursor-text text-left text-base"
           style={{ color: "var(--color-text-primary)" }}
           onClick={() => startEdit()}
         >

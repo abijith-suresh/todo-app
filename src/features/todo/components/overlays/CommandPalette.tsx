@@ -75,7 +75,10 @@ export const CommandPalette: Component = () => {
 
   return (
     <Show when={app.isSearchOpen()}>
-      <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 py-16">
+      <div
+        class="fixed inset-0 z-50 flex items-start justify-center px-4 py-16"
+        style={{ "background-color": "rgba(26, 24, 22, 0.35)" }}
+      >
         <button
           type="button"
           class="absolute inset-0"
@@ -87,9 +90,9 @@ export const CommandPalette: Component = () => {
           role="dialog"
           aria-modal="true"
           tabindex="-1"
-          class="relative z-10 w-full max-w-xl overflow-hidden rounded-xl shadow-2xl"
+          class="relative z-10 w-full max-w-xl overflow-hidden rounded-lg shadow-2xl"
           style={{
-            "background-color": "var(--color-bg-elevated)",
+            "background-color": "var(--color-bg-surface)",
             border: "1px solid var(--color-border-default)",
           }}
         >
@@ -119,7 +122,7 @@ export const CommandPalette: Component = () => {
               onInput={(event) => app.setSearchQuery(event.currentTarget.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search tasks…"
-              class="w-full bg-transparent text-sm outline-none"
+              class="w-full bg-transparent text-base outline-none placeholder:italic"
               style={{ color: "var(--color-text-primary)" }}
             />
           </div>
@@ -129,7 +132,7 @@ export const CommandPalette: Component = () => {
               when={app.searchResults().length > 0 && flatResults().length > 0}
               fallback={
                 <p
-                  class="px-3 py-8 text-center text-sm"
+                  class="px-3 py-8 text-center text-base italic"
                   style={{ color: "var(--color-text-tertiary)" }}
                 >
                   {app.searchQuery().trim()
@@ -151,7 +154,7 @@ export const CommandPalette: Component = () => {
                   return (
                     <div>
                       <p
-                        class="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider"
+                        class="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider"
                         style={{ color: "var(--color-text-tertiary)" }}
                       >
                         {group.label}
@@ -163,7 +166,7 @@ export const CommandPalette: Component = () => {
                           return (
                             <button
                               type="button"
-                              class="relative flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors"
+                              class="relative flex w-full items-center rounded-lg px-3 py-2 text-left text-base transition-colors"
                               style={{
                                 "background-color":
                                   activeIndex() === globalIndex
