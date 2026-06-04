@@ -14,7 +14,7 @@ export const TaskCheckbox: Component<TaskCheckboxProps> = (props) => (
         type="checkbox"
         aria-label={props.ariaLabel}
         class="task-checkbox shrink-0"
-        onChange={props.onToggle}
+        onChange={() => props.onToggle()}
         disabled={props.disabled}
       />
     </Match>
@@ -23,7 +23,7 @@ export const TaskCheckbox: Component<TaskCheckboxProps> = (props) => (
         type="button"
         aria-label={props.ariaLabel}
         class="task-checkbox-done shrink-0"
-        onClick={props.onToggle}
+        onClick={() => props.onToggle()}
         disabled={props.disabled}
       />
     </Match>

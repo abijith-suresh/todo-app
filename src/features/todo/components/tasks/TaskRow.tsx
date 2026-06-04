@@ -38,10 +38,11 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   };
 
   const handleComplete = (): void => {
+    const id = props.task.id;
     startExit(
       "complete",
       () => {
-        void app.completeTask(props.task.id);
+        void app.completeTask(id);
       },
       900
     );
@@ -49,10 +50,11 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
 
   const handleDelete = (event: MouseEvent): void => {
     event.stopPropagation();
+    const id = props.task.id;
     startExit(
       "delete",
       () => {
-        void app.deleteTask(props.task.id);
+        void app.deleteTask(id);
       },
       300
     );
