@@ -11,9 +11,6 @@ export const getTodayLocalIso = (): string => {
 export const isSameDay = (isoDate: string, isoDate2: string): boolean =>
   isoDate.slice(0, 10) === isoDate2.slice(0, 10);
 
-export const isBeforeToday = (isoDate: string, today?: string): boolean =>
-  isoDate.slice(0, 10) < (today ?? getTodayLocalIso());
-
 export const isAfterDays = (isoDate: string, days: number): boolean => {
   const then = new Date(isoDate.slice(0, 10) + "T00:00:00");
   const now = new Date();

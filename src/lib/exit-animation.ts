@@ -1,6 +1,6 @@
 import { createSignal, onCleanup } from "solid-js";
 
-export type ExitType = "complete" | "delete" | "reopen" | null;
+type ExitType = "complete" | "delete" | "reopen" | null;
 
 export function createExitAnimation() {
   const [exitType, setExitType] = createSignal<ExitType>(null);
