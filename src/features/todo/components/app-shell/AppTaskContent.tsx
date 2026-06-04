@@ -12,21 +12,12 @@ export const AppTaskContent = () => {
     <Show
       when={app.isHydrated()}
       fallback={
-        <p class="py-8 text-sm text-[var(--color-text-tertiary)]">
+        <p class="py-8 text-base italic" style={{ color: "var(--color-text-tertiary)" }}>
           Loading your local task database...
         </p>
       }
     >
-      <Show
-        when={app.activeTasks().length > 0}
-        fallback={
-          <div class="flex min-h-48 items-center justify-center py-12 text-center text-sm text-[var(--color-text-tertiary)]">
-            <p>Nothing here yet. Type above to add a task.</p>
-          </div>
-        }
-      >
-        <TaskList tasks={app.activeTasks()} />
-      </Show>
+      <TaskList tasks={app.activeTasks()} />
 
       <Show when={app.doneTodayTasks().length > 0}>
         <DoneTodaySection tasks={app.doneTodayTasks()} onReopen={(id) => void app.reopenTask(id)} />

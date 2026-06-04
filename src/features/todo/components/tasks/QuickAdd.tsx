@@ -29,11 +29,18 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
         }}
         value={title()}
         onInput={(event) => setTitle(event.currentTarget.value)}
-        placeholder="Add a task…"
-        class="w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm outline-none transition-colors"
+        placeholder="What do you want to do today?"
+        class="w-full bg-transparent pb-3 text-base outline-none transition-colors placeholder:italic"
         style={{
           color: "var(--color-text-primary)",
-          "border-color": "var(--color-border-default)",
+          "border-bottom": "1px solid var(--color-border-default)",
+        }}
+        onFocus={(e) => {
+          (e.currentTarget as HTMLInputElement).style.borderBottomColor = "var(--color-accent)";
+        }}
+        onBlur={(e) => {
+          (e.currentTarget as HTMLInputElement).style.borderBottomColor =
+            "var(--color-border-default)";
         }}
         autocomplete="off"
       />

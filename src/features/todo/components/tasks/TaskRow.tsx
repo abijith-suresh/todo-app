@@ -11,8 +11,11 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const app = useAppStore();
   const [isEditing, setIsEditing] = createSignal(false);
   const [editTitle, setEditTitle] = createSignal("");
+  const [exitType, setExitType] = createSignal<null | "complete" | "delete">(null);
 
   const isFocused = createMemo(() => app.focusedTaskId() === props.task.id);
+
+  let exitTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const startEdit = (): void => {
     setEditTitle(props.task.title);
@@ -31,99 +34,117 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
     setIsEditing(false);
   };
 
+  const handleComplete = (): void => {
+    setExitType("complete");
+    exitTimeout = setTimeout(() => {
+      exitTimeout = null;
+      void app.completeTask(props.task.id);
+    }, 900);
+  };
+
+  const handleDelete = (event: MouseEvent): void => {
+    event.stopPropagation();
+    setExitType("delete");
+    exitTimeout = setTimeout(() => {
+      exitTimeout = null;
+      void app.deleteTask(props.task.id);
+    }, 300);
+  };
+
   onCleanup(() => {
     setIsEditing(false);
+    if (exitTimeout) clearTimeout(exitTimeout);
   });
+
+  const isExiting = () => exitType() !== null;
 
   return (
     <div
-      class="group flex items-center gap-2.5 py-2.5 px-1"
-      style={{
-        "background-color": isFocused() ? "var(--color-accent-subtle)" : "transparent",
-        "border-left": isFocused() ? "3px solid var(--color-accent)" : "3px solid transparent",
-        "padding-left": isFocused() ? "calc(1rem - 3px)" : "1rem",
+      class="task-wrapper"
+      classList={{
+        "task-completing": exitType() === "complete",
+        "task-deleting": exitType() === "delete",
       }}
-      onMouseEnter={(e) => {
-        if (!isFocused()) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = "var(--color-bg-input)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isFocused()) {
-          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-        }
-      }}
-      onFocus={() => app.setFocusedTaskId(props.task.id)}
-      tabIndex={0}
     >
-      <input
-        type="checkbox"
-        aria-label={`Complete ${props.task.title}`}
-        class="task-checkbox shrink-0"
-        onChange={() => void app.completeTask(props.task.id)}
-      />
-
-      <Show
-        when={!isEditing()}
-        fallback={
+      <div class="task-inner">
+        <div
+          class="group flex items-center gap-3 py-4 task-row"
+          classList={{ "task-enter": !exitType() }}
+          style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
+          data-focused={isFocused() ? "true" : undefined}
+          onFocus={() => app.setFocusedTaskId(props.task.id)}
+          tabIndex={0}
+        >
           <input
-            ref={(el) => {
-              queueMicrotask(() => el?.focus());
-            }}
-            value={editTitle()}
-            onInput={(event) => setEditTitle(event.currentTarget.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                saveEdit();
-              }
-              if (event.key === "Escape") {
-                event.preventDefault();
-                cancelEdit();
-              }
-            }}
-            onBlur={() => saveEdit()}
-            class="min-w-0 flex-1 bg-transparent text-sm outline-none"
-            style={{ color: "var(--color-text-primary)" }}
-            autocomplete="off"
+            type="checkbox"
+            aria-label={`Complete ${props.task.title}`}
+            class="task-checkbox shrink-0"
+            onChange={handleComplete}
+            disabled={isExiting()}
           />
-        }
-      >
-        <button
-          type="button"
-          class="min-w-0 flex-1 cursor-text text-left text-sm"
-          style={{ color: "var(--color-text-primary)" }}
-          onClick={() => startEdit()}
-        >
-          <span class="truncate block">{props.task.title}</span>
-        </button>
-      </Show>
 
-      <button
-        type="button"
-        aria-label={`Delete ${props.task.title}`}
-        class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
-        style={{ color: "var(--color-text-tertiary)" }}
-        onClick={(event) => {
-          event.stopPropagation();
-          void app.deleteTask(props.task.id);
-        }}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="size-3.5"
-        >
-          <path d="M3 6h18" />
-          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-        </svg>
-      </button>
+          <Show
+            when={!isEditing()}
+            fallback={
+              <input
+                ref={(el) => {
+                  queueMicrotask(() => el?.focus());
+                }}
+                value={editTitle()}
+                onInput={(event) => setEditTitle(event.currentTarget.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    saveEdit();
+                  }
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    cancelEdit();
+                  }
+                }}
+                onBlur={() => saveEdit()}
+                class="min-w-0 flex-1 bg-transparent text-base outline-none"
+                style={{ color: "var(--color-text-primary)" }}
+                autocomplete="off"
+              />
+            }
+          >
+            <button
+              type="button"
+              class="min-w-0 flex-1 cursor-text text-left text-base"
+              style={{ color: "var(--color-text-primary)" }}
+              onClick={() => startEdit()}
+              disabled={isExiting()}
+            >
+              <span class="task-text truncate block">{props.task.title}</span>
+            </button>
+          </Show>
+
+          <button
+            type="button"
+            aria-label={`Delete ${props.task.title}`}
+            class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
+            style={{ color: "var(--color-text-tertiary)" }}
+            onClick={handleDelete}
+            disabled={isExiting()}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-3.5"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
