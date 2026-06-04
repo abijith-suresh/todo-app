@@ -2,11 +2,7 @@ import { type Component, createSignal } from "solid-js";
 
 import { useAppStore } from "@/state/app-store";
 
-interface QuickAddProps {
-  inputRef?: (element: HTMLInputElement) => void;
-}
-
-export const QuickAdd: Component<QuickAddProps> = (props) => {
+export const QuickAdd: Component = () => {
   const app = useAppStore();
   const [title, setTitle] = createSignal("");
 
@@ -25,7 +21,6 @@ export const QuickAdd: Component<QuickAddProps> = (props) => {
       <input
         ref={(el) => {
           inputRef = el;
-          props.inputRef?.(el);
         }}
         value={title()}
         onInput={(event) => setTitle(event.currentTarget.value)}

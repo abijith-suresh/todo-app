@@ -17,7 +17,6 @@ import type { SearchResultGroup, Task } from "../types";
 interface AppStore {
   tasks: Accessor<Task[]>;
   isHydrated: Accessor<boolean>;
-  selectedTaskId: Accessor<string | null>;
   focusedTaskId: Accessor<string | null>;
   isSearchOpen: Accessor<boolean>;
   searchQuery: Accessor<string>;
@@ -35,7 +34,6 @@ interface AppStore {
   openSearch: () => void;
   closeSearch: () => void;
   setSearchQuery: (query: string) => void;
-  setSelectedTaskId: (id: string | null) => void;
   setFocusedTaskId: (id: string | null) => void;
 }
 
@@ -70,7 +68,6 @@ const filterTasksByQuery = (tasks: Task[], query: string): Task[] => {
 export const AppProvider: ParentComponent = (props) => {
   const [tasks, setTasks] = createSignal<Task[]>([]);
   const [isHydrated, setIsHydrated] = createSignal(false);
-  const [selectedTaskId, setSelectedTaskId] = createSignal<string | null>(null);
   const [focusedTaskId, setFocusedTaskId] = createSignal<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = createSignal(false);
   const [searchQuery, setSearchQuery] = createSignal("");
@@ -232,7 +229,6 @@ export const AppProvider: ParentComponent = (props) => {
   const deleteTask = async (taskId: string): Promise<void> => {
     const current = tasks();
     setTasks(current.filter((t) => t.id !== taskId));
-    if (selectedTaskId() === taskId) setSelectedTaskId(null);
 
     try {
       await todoStorage.deleteTask(taskId);
@@ -278,7 +274,6 @@ export const AppProvider: ParentComponent = (props) => {
   const store: AppStore = {
     tasks,
     isHydrated,
-    selectedTaskId,
     focusedTaskId,
     isSearchOpen,
     searchQuery,
@@ -294,7 +289,6 @@ export const AppProvider: ParentComponent = (props) => {
     openSearch,
     closeSearch,
     setSearchQuery,
-    setSelectedTaskId,
     setFocusedTaskId,
   };
 
