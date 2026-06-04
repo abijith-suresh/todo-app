@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0](https://github.com/abijith-suresh/todo-app/compare/todo-app-v0.1.0...todo-app-v0.2.0) (2026-06-03)
+## [0.2.0](https://github.com/abijith-suresh/todo-app/compare/todo-app-v0.1.0...v0.2.0) (2026-06-03)
 
 ### Features
 
