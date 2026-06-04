@@ -1,7 +1,9 @@
-import { type Component, createSignal, For, onCleanup } from "solid-js";
+import { type Component, For } from "solid-js";
 
-import { TrashIcon } from "@/components/icons/TrashIcon";
-
+import { TaskCheckbox } from "@/components/primitives/TaskCheckbox";
+import { TaskDeleteButton } from "@/components/primitives/TaskDeleteButton";
+import { TaskTitle } from "@/components/primitives/TaskTitle";
+import { createExitAnimation } from "@/lib/exit-animation";
 import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
 
@@ -17,32 +19,28 @@ interface DoneTodayRowProps {
 
 const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
   const app = useAppStore();
-  const [exitType, setExitType] = createSignal<null | "reopen" | "delete">(null);
-
-  let exitTimeout: ReturnType<typeof setTimeout> | null = null;
+  const { exitType, isExiting, startExit } = createExitAnimation();
 
   const handleReopen = (): void => {
-    setExitType("reopen");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      props.onReopen(props.task.id);
-    }, 900);
+    startExit(
+      "reopen",
+      () => {
+        props.onReopen(props.task.id);
+      },
+      900
+    );
   };
 
   const handleDelete = (event: MouseEvent): void => {
     event.stopPropagation();
-    setExitType("delete");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      void app.deleteTask(props.task.id);
-    }, 300);
+    startExit(
+      "delete",
+      () => {
+        void app.deleteTask(props.task.id);
+      },
+      300
+    );
   };
-
-  onCleanup(() => {
-    if (exitTimeout) clearTimeout(exitTimeout);
-  });
-
-  const isExiting = () => exitType() !== null;
 
   return (
     <div
@@ -58,29 +56,18 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
           classList={{ "task-enter": !exitType() }}
           style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
         >
-          <button
-            type="button"
-            aria-label={`Reopen ${props.task.title}`}
-            class="task-checkbox-done shrink-0"
-            onClick={handleReopen}
+          <TaskCheckbox
+            status="completed"
+            ariaLabel={`Reopen ${props.task.title}`}
+            onToggle={handleReopen}
             disabled={isExiting()}
           />
-          <span
-            class="task-text min-w-0 flex-1 truncate text-base line-through"
-            style={{ color: "var(--color-text-tertiary)" }}
-          >
-            {props.task.title}
-          </span>
-          <button
-            type="button"
-            aria-label={`Delete ${props.task.title}`}
-            class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
-            style={{ color: "var(--color-text-tertiary)" }}
-            onClick={handleDelete}
+          <TaskTitle title={props.task.title} strikethrough muted />
+          <TaskDeleteButton
+            ariaLabel={`Delete ${props.task.title}`}
+            onDelete={handleDelete}
             disabled={isExiting()}
-          >
-            <TrashIcon />
-          </button>
+          />
         </div>
       </div>
     </div>

@@ -1,7 +1,9 @@
-import { type Component, createMemo, createSignal, onCleanup, Show } from "solid-js";
+import { type Component, createSignal, onCleanup, onMount, Show } from "solid-js";
 
-import { TrashIcon } from "@/components/icons/TrashIcon";
-
+import { TaskCheckbox } from "@/components/primitives/TaskCheckbox";
+import { TaskDeleteButton } from "@/components/primitives/TaskDeleteButton";
+import { TaskTitle } from "@/components/primitives/TaskTitle";
+import { createExitAnimation } from "@/lib/exit-animation";
 import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
 
@@ -13,11 +15,10 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const app = useAppStore();
   const [isEditing, setIsEditing] = createSignal(false);
   const [editTitle, setEditTitle] = createSignal("");
-  const [exitType, setExitType] = createSignal<null | "complete" | "delete">(null);
+  const [entered, setEntered] = createSignal(false);
+  const { exitType, isExiting, startExit } = createExitAnimation();
 
-  const isFocused = createMemo(() => app.focusedTaskId() === props.task.id);
-
-  let exitTimeout: ReturnType<typeof setTimeout> | null = null;
+  onMount(() => setTimeout(() => setEntered(true), 500));
 
   const startEdit = (): void => {
     setEditTitle(props.task.title);
@@ -37,28 +38,29 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   };
 
   const handleComplete = (): void => {
-    setExitType("complete");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      void app.completeTask(props.task.id);
-    }, 900);
+    startExit(
+      "complete",
+      () => {
+        void app.completeTask(props.task.id);
+      },
+      900
+    );
   };
 
   const handleDelete = (event: MouseEvent): void => {
     event.stopPropagation();
-    setExitType("delete");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      void app.deleteTask(props.task.id);
-    }, 300);
+    startExit(
+      "delete",
+      () => {
+        void app.deleteTask(props.task.id);
+      },
+      300
+    );
   };
 
   onCleanup(() => {
     setIsEditing(false);
-    if (exitTimeout) clearTimeout(exitTimeout);
   });
-
-  const isExiting = () => exitType() !== null;
 
   return (
     <div
@@ -71,17 +73,13 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
       <div class="task-inner">
         <div
           class="group flex items-center gap-3 py-4 task-row"
-          classList={{ "task-enter": !exitType() }}
+          classList={{ "task-enter": !entered() && !exitType() }}
           style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
-          data-focused={isFocused() ? "true" : undefined}
-          onFocus={() => app.setFocusedTaskId(props.task.id)}
-          tabIndex={0}
         >
-          <input
-            type="checkbox"
-            aria-label={`Complete ${props.task.title}`}
-            class="task-checkbox shrink-0"
-            onChange={handleComplete}
+          <TaskCheckbox
+            status="active"
+            ariaLabel={`Complete ${props.task.title}`}
+            onToggle={handleComplete}
             disabled={isExiting()}
           />
 
@@ -118,20 +116,15 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
               onClick={() => startEdit()}
               disabled={isExiting()}
             >
-              <span class="task-text truncate block">{props.task.title}</span>
+              <TaskTitle title={props.task.title} />
             </button>
           </Show>
 
-          <button
-            type="button"
-            aria-label={`Delete ${props.task.title}`}
-            class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
-            style={{ color: "var(--color-text-tertiary)" }}
-            onClick={handleDelete}
+          <TaskDeleteButton
+            ariaLabel={`Delete ${props.task.title}`}
+            onDelete={handleDelete}
             disabled={isExiting()}
-          >
-            <TrashIcon />
-          </button>
+          />
         </div>
       </div>
     </div>

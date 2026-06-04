@@ -237,7 +237,7 @@ img {
   background-color: transparent;
 }
 
-.task-row[data-focused="true"] {
+.task-row:focus-visible {
   background-color: var(--color-bg-surface);
 }
 
