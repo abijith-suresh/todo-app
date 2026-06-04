@@ -10,5 +10,5 @@
     "types": ["node"]
   },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist", ".astro", ".vercel"]
 }
