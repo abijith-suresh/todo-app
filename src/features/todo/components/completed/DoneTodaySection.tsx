@@ -1,7 +1,8 @@
-import { type Component, createSignal, For, onCleanup } from "solid-js";
+import { type Component, For } from "solid-js";
 
 import { TrashIcon } from "@/components/icons/TrashIcon";
 
+import { useExitAnimation } from "@/lib/use-exit-animation";
 import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
 
@@ -17,32 +18,28 @@ interface DoneTodayRowProps {
 
 const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
   const app = useAppStore();
-  const [exitType, setExitType] = createSignal<null | "reopen" | "delete">(null);
-
-  let exitTimeout: ReturnType<typeof setTimeout> | null = null;
+  const { exitType, isExiting, startExit } = useExitAnimation();
 
   const handleReopen = (): void => {
-    setExitType("reopen");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      props.onReopen(props.task.id);
-    }, 900);
+    startExit(
+      "reopen",
+      () => {
+        props.onReopen(props.task.id);
+      },
+      900
+    );
   };
 
   const handleDelete = (event: MouseEvent): void => {
     event.stopPropagation();
-    setExitType("delete");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      void app.deleteTask(props.task.id);
-    }, 300);
+    startExit(
+      "delete",
+      () => {
+        void app.deleteTask(props.task.id);
+      },
+      300
+    );
   };
-
-  onCleanup(() => {
-    if (exitTimeout) clearTimeout(exitTimeout);
-  });
-
-  const isExiting = () => exitType() !== null;
 
   return (
     <div

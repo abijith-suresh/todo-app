@@ -2,6 +2,7 @@ import { type Component, createMemo, createSignal, onCleanup, Show } from "solid
 
 import { TrashIcon } from "@/components/icons/TrashIcon";
 
+import { useExitAnimation } from "@/lib/use-exit-animation";
 import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
 
@@ -13,11 +14,9 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const app = useAppStore();
   const [isEditing, setIsEditing] = createSignal(false);
   const [editTitle, setEditTitle] = createSignal("");
-  const [exitType, setExitType] = createSignal<null | "complete" | "delete">(null);
+  const { exitType, isExiting, startExit } = useExitAnimation();
 
   const isFocused = createMemo(() => app.focusedTaskId() === props.task.id);
-
-  let exitTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const startEdit = (): void => {
     setEditTitle(props.task.title);
@@ -37,28 +36,29 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   };
 
   const handleComplete = (): void => {
-    setExitType("complete");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      void app.completeTask(props.task.id);
-    }, 900);
+    startExit(
+      "complete",
+      () => {
+        void app.completeTask(props.task.id);
+      },
+      900
+    );
   };
 
   const handleDelete = (event: MouseEvent): void => {
     event.stopPropagation();
-    setExitType("delete");
-    exitTimeout = setTimeout(() => {
-      exitTimeout = null;
-      void app.deleteTask(props.task.id);
-    }, 300);
+    startExit(
+      "delete",
+      () => {
+        void app.deleteTask(props.task.id);
+      },
+      300
+    );
   };
 
   onCleanup(() => {
     setIsEditing(false);
-    if (exitTimeout) clearTimeout(exitTimeout);
   });
-
-  const isExiting = () => exitType() !== null;
 
   return (
     <div
