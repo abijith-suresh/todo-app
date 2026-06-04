@@ -2,7 +2,7 @@ import { type Component, createMemo, createSignal, onCleanup, Show } from "solid
 
 import { TrashIcon } from "@/components/icons/TrashIcon";
 
-import { useExitAnimation } from "@/lib/use-exit-animation";
+import { createExitAnimation } from "@/lib/exit-animation";
 import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
 
@@ -14,7 +14,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const app = useAppStore();
   const [isEditing, setIsEditing] = createSignal(false);
   const [editTitle, setEditTitle] = createSignal("");
-  const { exitType, isExiting, startExit } = useExitAnimation();
+  const { exitType, isExiting, startExit } = createExitAnimation();
 
   const isFocused = createMemo(() => app.focusedTaskId() === props.task.id);
 

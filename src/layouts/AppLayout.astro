@@ -1,23 +1,19 @@
 ---
-import Fonts from "@/components/Fonts.astro";
 import "@/styles/global.css";
+import BaseHead from "@/components/BaseHead.astro";
 
 interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = "The local-first todo app mounted as a Solid island." } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <Fonts />
+    <BaseHead title={title} description={description} />
   </head>
   <body class="bg-[#f5f4f0] text-[#1a1816] antialiased">
     <slot />

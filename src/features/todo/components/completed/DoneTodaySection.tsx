@@ -2,7 +2,7 @@ import { type Component, For } from "solid-js";
 
 import { TrashIcon } from "@/components/icons/TrashIcon";
 
-import { useExitAnimation } from "@/lib/use-exit-animation";
+import { createExitAnimation } from "@/lib/exit-animation";
 import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
 
@@ -18,7 +18,7 @@ interface DoneTodayRowProps {
 
 const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
   const app = useAppStore();
-  const { exitType, isExiting, startExit } = useExitAnimation();
+  const { exitType, isExiting, startExit } = createExitAnimation();
 
   const handleReopen = (): void => {
     startExit(

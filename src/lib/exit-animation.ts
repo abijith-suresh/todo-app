@@ -1,10 +1,14 @@
 import { createSignal, onCleanup } from "solid-js";
 
-type ExitType = "complete" | "delete" | "reopen" | null;
+export type ExitType = "complete" | "delete" | "reopen" | null;
 
-export function useExitAnimation() {
+export function createExitAnimation() {
   const [exitType, setExitType] = createSignal<ExitType>(null);
   let exitTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  onCleanup(() => {
+    if (exitTimeout) clearTimeout(exitTimeout);
+  });
 
   const isExiting = (): boolean => exitType() !== null;
 
@@ -15,15 +19,6 @@ export function useExitAnimation() {
       callback();
     }, delay);
   };
-
-  const cleanup = (): void => {
-    if (exitTimeout) {
-      clearTimeout(exitTimeout);
-      exitTimeout = null;
-    }
-  };
-
-  onCleanup(() => cleanup());
 
   return { exitType, isExiting, startExit };
 }
