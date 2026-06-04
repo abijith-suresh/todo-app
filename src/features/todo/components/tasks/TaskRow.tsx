@@ -1,4 +1,4 @@
-import { type Component, createMemo, createSignal, onCleanup, Show } from "solid-js";
+import { type Component, createSignal, onCleanup, Show } from "solid-js";
 
 import { TaskCheckbox } from "@/components/primitives/TaskCheckbox";
 import { TaskDeleteButton } from "@/components/primitives/TaskDeleteButton";
@@ -16,8 +16,6 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const [isEditing, setIsEditing] = createSignal(false);
   const [editTitle, setEditTitle] = createSignal("");
   const { exitType, isExiting, startExit } = createExitAnimation();
-
-  const isFocused = createMemo(() => app.focusedTaskId() === props.task.id);
 
   const startEdit = (): void => {
     setEditTitle(props.task.title);
@@ -74,9 +72,6 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
           class="group flex items-center gap-3 py-4 task-row"
           classList={{ "task-enter": !exitType() }}
           style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
-          data-focused={isFocused() ? "true" : undefined}
-          onFocus={() => app.setFocusedTaskId(props.task.id)}
-          tabIndex={0}
         >
           <TaskCheckbox
             status="active"
