@@ -44,50 +44,56 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
 
   return (
     <div
-      class="group flex items-center gap-3 py-3"
+      class="task-wrapper"
       classList={{
         "task-reopening": exitType() === "reopen",
         "task-deleting": exitType() === "delete",
-        "task-enter": !exitType(),
       }}
-      style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
     >
-      <button
-        type="button"
-        aria-label={`Reopen ${props.task.title}`}
-        class="task-checkbox-done shrink-0"
-        onClick={handleReopen}
-        disabled={isExiting()}
-      />
-      <span
-        class="task-text min-w-0 flex-1 truncate text-base line-through"
-        style={{ color: "var(--color-text-tertiary)" }}
-      >
-        {props.task.title}
-      </span>
-      <button
-        type="button"
-        aria-label={`Delete ${props.task.title}`}
-        class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
-        style={{ color: "var(--color-text-tertiary)" }}
-        onClick={handleDelete}
-        disabled={isExiting()}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="size-3.5"
+      <div class="task-inner">
+        <div
+          class="group flex items-center gap-3 py-3"
+          classList={{ "task-enter": !exitType() }}
+          style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
         >
-          <path d="M3 6h18" />
-          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-        </svg>
-      </button>
+          <button
+            type="button"
+            aria-label={`Reopen ${props.task.title}`}
+            class="task-checkbox-done shrink-0"
+            onClick={handleReopen}
+            disabled={isExiting()}
+          />
+          <span
+            class="task-text min-w-0 flex-1 truncate text-base line-through"
+            style={{ color: "var(--color-text-tertiary)" }}
+          >
+            {props.task.title}
+          </span>
+          <button
+            type="button"
+            aria-label={`Delete ${props.task.title}`}
+            class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
+            style={{ color: "var(--color-text-tertiary)" }}
+            onClick={handleDelete}
+            disabled={isExiting()}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-3.5"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

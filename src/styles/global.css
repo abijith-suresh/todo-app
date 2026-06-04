@@ -147,7 +147,34 @@ img {
   }
 }
 
-/* Gentle entrance animation for new tasks */
+/* ── Task animations ── */
+
+/* Wrapper handles height collapse via CSS Grid */
+.task-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 400ms ease 500ms;
+}
+
+.task-wrapper.task-completing {
+  grid-template-rows: 0fr;
+}
+
+.task-wrapper.task-reopening {
+  grid-template-rows: 0fr;
+}
+
+.task-wrapper.task-deleting {
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms ease;
+}
+
+.task-wrapper .task-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Entrance: new tasks fade in + slide down */
 .task-enter {
   animation: task-enter 400ms ease-out both;
 }
@@ -163,18 +190,8 @@ img {
   }
 }
 
-/* Task row base — smooth background transition for keyboard focus only */
-.task-row {
-  transition: background-color 200ms ease;
-  background-color: transparent;
-}
-
-.task-row[data-focused="true"] {
-  background-color: var(--color-bg-surface);
-}
-
-/* Completing: ghost state (500ms) then fade+slide down (400ms) */
-.task-completing {
+/* Completing: ghost state (500ms), then fade + slide down + collapse (400ms) */
+.task-completing .task-inner {
   opacity: 0;
   transform: translateY(12px);
   transition:
@@ -189,8 +206,8 @@ img {
   transition: color 200ms ease;
 }
 
-/* Reopening: ghost state (500ms) then fade+slide up (400ms) */
-.task-reopening {
+/* Reopening: ghost state (500ms), then fade + slide up + collapse (400ms) */
+.task-reopening .task-inner {
   opacity: 0;
   transform: translateY(-8px);
   transition:
@@ -205,12 +222,27 @@ img {
   transition: color 200ms ease;
 }
 
-/* Deleting: quick fade out */
-.task-deleting {
+/* Deleting: quick fade + scale + collapse */
+.task-deleting .task-inner {
   opacity: 0;
   transform: scale(0.97);
   transition:
     opacity 300ms ease,
     transform 300ms ease;
   pointer-events: none;
+}
+
+/* ── Task row hover/focus ── */
+.task-row {
+  transition: background-color 200ms ease;
+  background-color: transparent;
+}
+
+.task-row[data-focused="true"] {
+  background-color: var(--color-bg-surface);
+}
+
+/* ── View cross-fade ── */
+.view-fade {
+  transition: opacity 400ms ease;
 }
