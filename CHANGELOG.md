@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0](https://github.com/abijith-suresh/todo-app/compare/v0.2.0...v0.3.0) (2026-06-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **app:** zen redesign with search overhaul and task animations ([#40](https://github.com/abijith-suresh/todo-app/issues/40))
+
+### Features
+
+* **app:** zen redesign with search overhaul and task animations ([#40](https://github.com/abijith-suresh/todo-app/issues/40)) ([45c07ab](https://github.com/abijith-suresh/todo-app/commit/45c07ab105de109c0c5e487de89e8d3cacb39c40))
+
+
+### Bug Fixes
+
+* exclude component name from release tags — use v{version} format ([#42](https://github.com/abijith-suresh/todo-app/issues/42)) ([7367dca](https://github.com/abijith-suresh/todo-app/commit/7367dca72d7c4341c1c84573201d42fd6d3a6389))
+
 ## [0.2.0](https://github.com/abijith-suresh/todo-app/compare/todo-app-v0.1.0...v0.2.0) (2026-06-03)
 
 
