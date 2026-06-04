@@ -1,5 +1,6 @@
 import { type Component, createEffect, createSignal, For, Show } from "solid-js";
 
+import { TaskTitle } from "@/components/primitives/TaskTitle";
 import { useAppStore } from "@/state/app-store";
 
 export const SearchView: Component = () => {
@@ -173,18 +174,11 @@ export const SearchView: Component = () => {
                           onMouseEnter={() => setActiveIndex(globalIndex)}
                           onClick={() => chooseResult(globalIndex)}
                         >
-                          <span
-                            class="min-w-0 flex-1 truncate"
-                            classList={{ "line-through": isCompleted }}
-                            style={{
-                              color: isCompleted
-                                ? "var(--color-text-tertiary)"
-                                : "var(--color-text-primary)",
-                              "font-family": '"Source Serif 4", Georgia, serif',
-                            }}
-                          >
-                            {task.title}
-                          </span>
+                          <TaskTitle
+                            title={task.title}
+                            strikethrough={isCompleted}
+                            muted={isCompleted}
+                          />
                         </button>
                       );
                     }}

@@ -1,7 +1,8 @@
 import { type Component, createMemo, createSignal, onCleanup, Show } from "solid-js";
 
-import { TrashIcon } from "@/components/icons/TrashIcon";
-
+import { TaskCheckbox } from "@/components/primitives/TaskCheckbox";
+import { TaskDeleteButton } from "@/components/primitives/TaskDeleteButton";
+import { TaskTitle } from "@/components/primitives/TaskTitle";
 import { createExitAnimation } from "@/lib/exit-animation";
 import { useAppStore } from "@/state/app-store";
 import type { Task } from "@/types";
@@ -77,11 +78,10 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
           onFocus={() => app.setFocusedTaskId(props.task.id)}
           tabIndex={0}
         >
-          <input
-            type="checkbox"
-            aria-label={`Complete ${props.task.title}`}
-            class="task-checkbox shrink-0"
-            onChange={handleComplete}
+          <TaskCheckbox
+            status="active"
+            ariaLabel={`Complete ${props.task.title}`}
+            onToggle={handleComplete}
             disabled={isExiting()}
           />
 
@@ -118,20 +118,15 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
               onClick={() => startEdit()}
               disabled={isExiting()}
             >
-              <span class="task-text truncate block">{props.task.title}</span>
+              <TaskTitle title={props.task.title} />
             </button>
           </Show>
 
-          <button
-            type="button"
-            aria-label={`Delete ${props.task.title}`}
-            class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
-            style={{ color: "var(--color-text-tertiary)" }}
-            onClick={handleDelete}
+          <TaskDeleteButton
+            ariaLabel={`Delete ${props.task.title}`}
+            onDelete={handleDelete}
             disabled={isExiting()}
-          >
-            <TrashIcon />
-          </button>
+          />
         </div>
       </div>
     </div>
