@@ -1,0 +1,6 @@
+CHANGELOG.md
+dist
+.astro
+.vercel
+coverage
+bun.lock

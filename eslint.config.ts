@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 
 export default [
   {
-    ignores: ["dist", "coverage", "node_modules", ".astro"],
+    ignores: ["dist", "coverage", "node_modules", ".astro", ".vercel"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
