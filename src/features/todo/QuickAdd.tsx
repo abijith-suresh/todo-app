@@ -25,17 +25,12 @@ export const QuickAdd: Component = () => {
         value={title()}
         onInput={(event) => setTitle(event.currentTarget.value)}
         placeholder="What do you want to do today?"
-        class="w-full bg-transparent pb-3 text-base outline-none transition-colors placeholder:italic"
-        style={{
-          color: "var(--color-text-primary)",
-          "border-bottom": "1px solid var(--color-border-default)",
-        }}
+        class="w-full bg-transparent pb-3 text-base outline-none transition-colors placeholder:italic text-ink border-b border-line"
         onFocus={(e) => {
           (e.currentTarget as HTMLInputElement).style.borderBottomColor = "var(--color-accent)";
         }}
         onBlur={(e) => {
-          (e.currentTarget as HTMLInputElement).style.borderBottomColor =
-            "var(--color-border-default)";
+          (e.currentTarget as HTMLInputElement).style.borderBottomColor = "var(--color-line)";
         }}
         autocomplete="off"
       />

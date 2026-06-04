@@ -1,13 +1,13 @@
 import { type Component, Match, Switch } from "solid-js";
 
-interface TaskCheckboxProps {
+interface CheckboxProps {
   status: "active" | "completed";
   ariaLabel: string;
   onToggle: () => void;
   disabled?: boolean;
 }
 
-export const TaskCheckbox: Component<TaskCheckboxProps> = (props) => (
+export const Checkbox: Component<CheckboxProps> = (props) => (
   <Switch>
     <Match when={props.status === "active"}>
       <input

@@ -1,11 +1,11 @@
 import { type Component, createSignal, onCleanup, onMount, Show } from "solid-js";
 
-import { TaskCheckbox } from "@/components/primitives/TaskCheckbox";
-import { TaskDeleteButton } from "@/components/primitives/TaskDeleteButton";
-import { TaskTitle } from "@/components/primitives/TaskTitle";
+import { Checkbox } from "@/components/ui/Solid/Checkbox";
+import { DeleteButton } from "@/components/ui/Solid/DeleteButton";
+import { Text } from "@/components/ui/Solid/Text";
 import { createExitAnimation } from "@/lib/exit-animation";
 import { useAppStore } from "@/state/app-store";
-import type { Task } from "@/types";
+import type { Task } from "@/lib/types";
 
 interface TaskRowProps {
   task: Task;
@@ -74,11 +74,10 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
     >
       <div class="task-inner">
         <div
-          class="group flex items-center gap-3 py-4 task-row"
+          class="group flex items-center gap-3 py-4 task-row border-b border-line-subtle"
           classList={{ "task-enter": !entered() && !exitType() }}
-          style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
         >
-          <TaskCheckbox
+          <Checkbox
             status="active"
             ariaLabel={`Complete ${props.task.title}`}
             onToggle={handleComplete}
@@ -105,24 +104,22 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
                   }
                 }}
                 onBlur={() => saveEdit()}
-                class="min-w-0 flex-1 bg-transparent text-base outline-none"
-                style={{ color: "var(--color-text-primary)" }}
+                class="min-w-0 flex-1 bg-transparent text-base outline-none text-ink"
                 autocomplete="off"
               />
             }
           >
             <button
               type="button"
-              class="min-w-0 flex-1 cursor-text text-left text-base"
-              style={{ color: "var(--color-text-primary)" }}
+              class="min-w-0 flex-1 cursor-text text-left text-base text-ink"
               onClick={() => startEdit()}
               disabled={isExiting()}
             >
-              <TaskTitle title={props.task.title} />
+              <Text title={props.task.title} />
             </button>
           </Show>
 
-          <TaskDeleteButton
+          <DeleteButton
             ariaLabel={`Delete ${props.task.title}`}
             onDelete={handleDelete}
             disabled={isExiting()}

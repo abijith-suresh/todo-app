@@ -2,8 +2,8 @@ import { Show } from "solid-js";
 
 import { useAppStore } from "@/state/app-store";
 
-import { DoneTodaySection } from "../completed/DoneTodaySection";
-import { TaskList } from "../tasks/TaskList";
+import { DoneTodaySection } from "./DoneTodaySection";
+import { TaskList } from "./TaskList";
 
 export const AppTaskContent = () => {
   const app = useAppStore();
@@ -12,9 +12,7 @@ export const AppTaskContent = () => {
     <Show
       when={app.isHydrated()}
       fallback={
-        <p class="py-8 text-base italic" style={{ color: "var(--color-text-tertiary)" }}>
-          Loading your local task database...
-        </p>
+        <p class="py-8 text-base italic text-ink-tertiary">Loading your local task database...</p>
       }
     >
       <TaskList tasks={app.activeTasks()} />

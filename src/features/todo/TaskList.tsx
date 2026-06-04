@@ -1,6 +1,6 @@
 import { type Component, For, Show } from "solid-js";
 
-import type { Task } from "@/types";
+import type { Task } from "@/lib/types";
 
 import { TaskRow } from "./TaskRow";
 
@@ -14,14 +14,7 @@ export const TaskList: Component<TaskListProps> = (props) => (
       when={props.tasks.length > 0}
       fallback={
         <div class="flex min-h-48 flex-col items-center justify-center py-12 text-center">
-          <p
-            class="text-lg font-light italic leading-relaxed"
-            style={{
-              color: "var(--color-text-tertiary)",
-              "font-family": '"Source Serif 4", Georgia, serif',
-              "max-width": "20rem",
-            }}
-          >
+          <p class="text-lg font-light italic leading-relaxed text-ink-tertiary max-w-[20rem] font-body">
             What needs your attention today?
           </p>
         </div>
