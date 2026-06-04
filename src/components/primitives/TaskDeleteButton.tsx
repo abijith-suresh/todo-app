@@ -14,7 +14,7 @@ export const TaskDeleteButton: Component<TaskDeleteButtonProps> = (props) => (
     aria-label={props.ariaLabel}
     class="shrink-0 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100"
     style={{ color: "var(--color-text-tertiary)" }}
-    onClick={props.onDelete}
+    onClick={(e) => props.onDelete(e)}
     disabled={props.disabled}
   >
     <TrashIcon />

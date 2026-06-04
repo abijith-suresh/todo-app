@@ -22,10 +22,12 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
   const { exitType, isExiting, startExit } = createExitAnimation();
 
   const handleReopen = (): void => {
+    const id = props.task.id;
+    const reopen = props.onReopen;
     startExit(
       "reopen",
       () => {
-        props.onReopen(props.task.id);
+        reopen(id);
       },
       900
     );
@@ -33,10 +35,11 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
 
   const handleDelete = (event: MouseEvent): void => {
     event.stopPropagation();
+    const id = props.task.id;
     startExit(
       "delete",
       () => {
-        void app.deleteTask(props.task.id);
+        void app.deleteTask(id);
       },
       300
     );
