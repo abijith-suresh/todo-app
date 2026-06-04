@@ -161,17 +161,12 @@ export const SearchView: Component = () => {
                       return (
                         <button
                           type="button"
-                          class="group flex w-full items-center gap-3 py-4 text-left text-base transition-colors duration-150"
+                          class="group flex w-full items-center gap-3 py-4 text-left text-base"
                           style={{
                             "border-bottom": "1px solid var(--color-border-subtle)",
-                            "background-color":
-                              activeIndex() === globalIndex
-                                ? "var(--color-bg-surface)"
-                                : "transparent",
                           }}
                           role="option"
                           aria-selected={activeIndex() === globalIndex}
-                          onMouseEnter={() => setActiveIndex(globalIndex)}
                           onClick={() => chooseResult(globalIndex)}
                         >
                           <TaskTitle

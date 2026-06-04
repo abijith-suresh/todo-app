@@ -1,4 +1,4 @@
-import { type Component, createSignal, onCleanup, Show } from "solid-js";
+import { type Component, createSignal, onCleanup, onMount, Show } from "solid-js";
 
 import { TaskCheckbox } from "@/components/primitives/TaskCheckbox";
 import { TaskDeleteButton } from "@/components/primitives/TaskDeleteButton";
@@ -15,7 +15,10 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
   const app = useAppStore();
   const [isEditing, setIsEditing] = createSignal(false);
   const [editTitle, setEditTitle] = createSignal("");
+  const [entered, setEntered] = createSignal(false);
   const { exitType, isExiting, startExit } = createExitAnimation();
+
+  onMount(() => setTimeout(() => setEntered(true), 500));
 
   const startEdit = (): void => {
     setEditTitle(props.task.title);
@@ -70,7 +73,7 @@ export const TaskRow: Component<TaskRowProps> = (props) => {
       <div class="task-inner">
         <div
           class="group flex items-center gap-3 py-4 task-row"
-          classList={{ "task-enter": !exitType() }}
+          classList={{ "task-enter": !entered() && !exitType() }}
           style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
         >
           <TaskCheckbox
