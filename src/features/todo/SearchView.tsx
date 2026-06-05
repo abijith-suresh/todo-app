@@ -1,6 +1,6 @@
 import { type Component, createEffect, createSignal, For, Show } from "solid-js";
 
-import { TaskTitle } from "@/components/primitives/TaskTitle";
+import { Text } from "@/components/ui/Solid/Text";
 import { useAppStore } from "@/state/app-store";
 
 export const SearchView: Component = () => {
@@ -76,17 +76,11 @@ export const SearchView: Component = () => {
 
   return (
     <div>
-      <h1
-        class="mb-10 text-center text-2xl font-normal tracking-tight sm:mb-14"
-        style={{ "font-family": '"DM Serif Display", Georgia, serif' }}
-      >
+      <h1 class="mb-10 text-center text-2xl font-normal tracking-tight sm:mb-14 font-display">
         Search
       </h1>
 
-      <div
-        class="flex items-center gap-3 pb-3"
-        style={{ "border-bottom": "1px solid var(--color-border-default)" }}
-      >
+      <div class="flex items-center gap-3 pb-3 border-b border-line">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -95,8 +89,7 @@ export const SearchView: Component = () => {
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="size-4 shrink-0"
-          style={{ color: "var(--color-text-tertiary)" }}
+          class="size-4 shrink-0 text-ink-tertiary"
           aria-hidden="true"
         >
           <circle cx="11" cy="11" r="8" />
@@ -110,8 +103,7 @@ export const SearchView: Component = () => {
           onInput={(event) => app.setSearchQuery(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
           placeholder="Search tasks…"
-          class="w-full bg-transparent text-base outline-none placeholder:italic"
-          style={{ color: "var(--color-text-primary)" }}
+          class="w-full bg-transparent text-base outline-none placeholder:italic text-ink"
         />
       </div>
 
@@ -119,13 +111,7 @@ export const SearchView: Component = () => {
         <Show
           when={flatResults().length > 0}
           fallback={
-            <p
-              class="py-10 text-center text-sm italic"
-              style={{
-                color: "var(--color-text-tertiary)",
-                "font-family": '"Source Serif 4", Georgia, serif',
-              }}
-            >
+            <p class="py-10 text-center text-sm italic text-ink-tertiary font-body">
               {app.searchQuery().trim()
                 ? "No tasks matched your search."
                 : "Type to search your tasks."}
@@ -144,13 +130,7 @@ export const SearchView: Component = () => {
 
               return (
                 <div>
-                  <p
-                    class="mb-6 text-xs italic tracking-wide"
-                    style={{
-                      color: "var(--color-text-tertiary)",
-                      "font-family": '"Source Serif 4", Georgia, serif',
-                    }}
-                  >
+                  <p class="mb-6 text-xs italic tracking-wide text-ink-tertiary font-body">
                     {group.label}
                   </p>
                   <For each={groupTasks}>
@@ -161,15 +141,12 @@ export const SearchView: Component = () => {
                       return (
                         <button
                           type="button"
-                          class="group flex w-full items-center gap-3 py-4 text-left text-base"
-                          style={{
-                            "border-bottom": "1px solid var(--color-border-subtle)",
-                          }}
+                          class="group flex w-full items-center gap-3 py-4 text-left text-base border-b border-line-subtle"
                           role="option"
                           aria-selected={activeIndex() === globalIndex}
                           onClick={() => chooseResult(globalIndex)}
                         >
-                          <TaskTitle
+                          <Text
                             title={task.title}
                             strikethrough={isCompleted}
                             muted={isCompleted}

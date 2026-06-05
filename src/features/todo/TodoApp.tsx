@@ -2,10 +2,10 @@ import { onCleanup, onMount } from "solid-js";
 
 import { useAppStore } from "@/state/app-store";
 
-import { AppFrame } from "../components/app-shell/AppFrame";
-import { AppTaskContent } from "../components/app-shell/AppTaskContent";
-import { QuickAdd } from "../components/tasks/QuickAdd";
-import { SearchView } from "../components/search/SearchView";
+import { AppFrame } from "./AppFrame";
+import { AppTaskContent } from "./AppTaskContent";
+import { QuickAdd } from "./QuickAdd";
+import { SearchView } from "./SearchView";
 
 const isEditableTarget = (target: EventTarget | null): boolean => {
   const element = target as HTMLElement | null;
@@ -48,7 +48,6 @@ export default function TodoApp() {
 
   return (
     <AppFrame>
-      {/* Subtle ambient gradient */}
       <div
         class="pointer-events-none fixed inset-0 z-0"
         style={{
@@ -59,26 +58,16 @@ export default function TodoApp() {
       />
 
       <main class="relative z-10 mx-auto max-w-xl px-6 pt-20 pb-12 sm:pt-28 sm:pb-16">
-        {/* Views are absolutely positioned within this wrapper.
-            Only opacity changes — no position toggling, so no layout jank. */}
-        <div class="relative" style={{ "min-height": "60vh" }}>
-          {/* Main View */}
+        <div class="relative min-h-[60vh]">
           <div
-            class="view-fade"
+            class="view-fade absolute inset-0"
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
               opacity: searchOpen() ? 0 : 1,
               "pointer-events": searchOpen() ? "none" : "auto",
               "z-index": searchOpen() ? 0 : 1,
             }}
           >
-            <h1
-              class="mb-10 text-center text-2xl font-normal tracking-tight sm:mb-14"
-              style={{ "font-family": '"DM Serif Display", Georgia, serif' }}
-            >
+            <h1 class="mb-10 text-center text-2xl font-normal tracking-tight sm:mb-14 font-display">
               Today&rsquo;s Intentions
             </h1>
             <QuickAdd />
@@ -87,14 +76,9 @@ export default function TodoApp() {
             </div>
           </div>
 
-          {/* Search View */}
           <div
-            class="view-fade"
+            class="view-fade absolute inset-0"
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
               opacity: searchOpen() ? 1 : 0,
               "pointer-events": searchOpen() ? "auto" : "none",
               "z-index": searchOpen() ? 1 : 0,

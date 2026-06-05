@@ -1,4 +1,4 @@
-import type { Task } from "../types";
+import type { Task } from "../lib/types";
 
 const DB_NAME = "todo-app-db";
 const DB_VERSION = 1;

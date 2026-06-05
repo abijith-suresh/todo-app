@@ -8,13 +8,13 @@ export interface Props {
 const { href, variant = "primary", class: className = "" } = Astro.props;
 
 const baseClasses =
-  "inline-flex items-center justify-center px-8 py-[0.9rem] font-mk-body text-[0.9375rem] font-medium rounded-[2px] transition-all duration-300 ease-out cursor-pointer border-none";
+  "inline-flex items-center justify-center px-8 py-[0.9rem] font-body text-[0.9375rem] font-medium rounded-[2px] transition-all duration-300 ease-out cursor-pointer border-none";
 
 const variantClasses = {
   primary:
-    "bg-mk-accent text-mk-paper shadow-mk-soft hover:bg-mk-accent-hover hover:shadow-mk-medium hover:-translate-y-0.5",
+    "bg-accent text-card shadow-soft hover:bg-accent-hover hover:shadow-medium hover:-translate-y-0.5",
   secondary:
-    "bg-transparent text-mk-text-secondary border border-mk-border hover:border-mk-text-secondary hover:text-mk-text hover:-translate-y-0.5",
+    "bg-transparent text-ink-secondary border border-line hover:border-ink-secondary hover:text-ink hover:-translate-y-0.5",
 };
 ---
 

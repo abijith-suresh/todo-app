@@ -1,28 +1,5 @@
 @import "tailwindcss";
-
-:root {
-  color-scheme: light;
-
-  --color-bg-base: #f5f4f0;
-  --color-bg-surface: #faf9f6;
-  --color-bg-elevated: #f0ede8;
-  --color-bg-input: #f7f6f3;
-
-  --color-text-primary: #1a1816;
-  --color-text-secondary: #5c5854;
-  --color-text-tertiary: #8a8680;
-
-  --color-border-subtle: #e8e5df;
-  --color-border-default: #d9d5cd;
-  --color-border-focus: #6b2d3a;
-
-  --color-accent: #6b2d3a;
-  --color-accent-hover: #4a1f28;
-  --color-accent-subtle: rgba(107, 45, 58, 0.06);
-
-  --scrollbar-thumb: rgba(160, 152, 147, 0.4);
-  --scrollbar-thumb-hover: rgba(160, 152, 147, 0.65);
-}
+@import "./tokens.css";
 
 *,
 *::before,
@@ -42,8 +19,8 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--color-bg-base);
-  color: var(--color-text-primary);
+  background-color: var(--color-page);
+  color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -70,7 +47,7 @@ img {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-color: rgba(160, 152, 147, 0.4) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -83,12 +60,12 @@ img {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: rgba(160, 152, 147, 0.4);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: rgba(160, 152, 147, 0.65);
 }
 
 .task-checkbox {
@@ -97,7 +74,7 @@ img {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-border-default);
+  border: 1.5px solid var(--color-line);
   background: transparent;
   cursor: pointer;
   transition:
@@ -146,9 +123,6 @@ img {
   }
 }
 
-/* ── Task animations ── */
-
-/* Wrapper handles height collapse via CSS Grid */
 .task-wrapper {
   display: grid;
   grid-template-rows: 1fr;
@@ -173,23 +147,10 @@ img {
   overflow: hidden;
 }
 
-/* Entrance: new tasks fade in + slide down */
 .task-enter {
   animation: task-enter 400ms ease-out both;
 }
 
-@keyframes task-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Completing: ghost state (500ms), then fade + slide down + collapse (400ms) */
 .task-completing .task-inner {
   opacity: 0;
   transform: translateY(12px);
@@ -201,11 +162,10 @@ img {
 
 .task-completing .task-text {
   text-decoration: line-through;
-  color: var(--color-text-tertiary);
+  color: var(--color-ink-tertiary);
   transition: color 200ms ease;
 }
 
-/* Reopening: ghost state (500ms), then fade + slide up + collapse (400ms) */
 .task-reopening .task-inner {
   opacity: 0;
   transform: translateY(-8px);
@@ -217,11 +177,10 @@ img {
 
 .task-reopening .task-text {
   text-decoration: none;
-  color: var(--color-text-primary);
+  color: var(--color-ink);
   transition: color 200ms ease;
 }
 
-/* Deleting: quick fade + scale + collapse */
 .task-deleting .task-inner {
   opacity: 0;
   transform: scale(0.97);
@@ -231,17 +190,15 @@ img {
   pointer-events: none;
 }
 
-/* ── Task row hover/focus ── */
 .task-row {
   transition: background-color 200ms ease;
   background-color: transparent;
 }
 
 .task-row:focus-visible {
-  background-color: var(--color-bg-surface);
+  background-color: var(--color-card);
 }
 
-/* ── View cross-fade ── */
 .view-fade {
   transition: opacity 400ms ease;
 }

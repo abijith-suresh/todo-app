@@ -1,0 +1,64 @@
+---
+import SectionInner from "@/components/ui/Astro/SectionInner.astro";
+---
+
+<section class="px-8 py-28 max-lg:py-20 max-sm:px-5 relative bg-warm">
+  <SectionInner>
+    <div class="grid grid-cols-[1.2fr_0.8fr] gap-16 items-start max-lg:grid-cols-1 max-lg:gap-8">
+      <div class="animate-fade-in-up duration-[800ms] delay-[100ms]">
+        <span class="font-display text-sm text-accent tracking-wider block mb-3">01</span>
+        <h2
+          class="font-display text-[clamp(2rem,4vw,3rem)] font-normal leading-[1.15] tracking-tight text-ink mb-12"
+        >
+          The idea
+        </h2>
+        <p class="font-body text-base font-light leading-relaxed text-ink-secondary mb-5">
+          We kept opening heavy task managers to write down simple things like
+          <em class="italic text-ink">call the dentist</em> or
+          <em class="italic text-ink">sketch the garden plan</em>. Those tools were built for teams,
+          sprints, and dashboards &mdash; not for a single human trying to hold onto a thought until
+          evening.
+        </p>
+        <p class="font-body text-base font-light leading-relaxed text-ink-secondary">
+          todo-app is the opposite. No accounts. No sync servers. No notifications buzzing at
+          midnight. Just a quiet page that remembers what you wrote this morning.
+        </p>
+      </div>
+      <div
+        class="flex items-start justify-center pt-8 animate-fade-in-up duration-[800ms] delay-[300ms]"
+      >
+        <div
+          class="paper-card bg-card p-8 border border-line-subtle rounded-[2px] shadow-soft max-w-[340px] relative max-sm:p-6 max-sm:max-w-full"
+        >
+          <span
+            class="font-body text-[0.7rem] uppercase tracking-[0.1em] text-ink-tertiary font-medium block mb-4 pl-5"
+          >
+            A note to self
+          </span>
+          <p class="font-body text-[0.95rem] italic leading-relaxed text-ink pl-5">
+            &ldquo;The best tools are the ones you forget you&rsquo;re using. I want todo-app to
+            feel like the back of an envelope &mdash; always within reach, never in the way.&rdquo;
+          </p>
+        </div>
+      </div>
+    </div>
+  </SectionInner>
+</section>
+
+<style>
+  .paper-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 2rem;
+    bottom: 0;
+    width: 1px;
+    background: rgba(217, 213, 205, 0.5);
+  }
+
+  @media (max-width: 600px) {
+    .paper-card::before {
+      left: 1.5rem;
+    }
+  }
+</style>

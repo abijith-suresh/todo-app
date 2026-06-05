@@ -19,17 +19,17 @@ const { kicker, titlePrefix, titleEmphasis, subtitle } = Astro.props;
   </div>
   <div class="max-w-[1000px] mx-auto w-full relative z-1">
     <p
-      class="font-mk-body text-xs font-medium uppercase tracking-[0.15em] text-mk-accent mb-6 animate-mk-fade-in-up duration-[600ms] delay-[100ms]"
+      class="font-body text-xs font-medium uppercase tracking-[0.15em] text-accent mb-6 animate-fade-in-up duration-[600ms] delay-[100ms]"
     >
       {kicker}
     </p>
     <h1
-      class="font-mk-display text-[clamp(2.5rem,5vw,4rem)] font-normal leading-[1.1] tracking-tight text-mk-text mb-6 animate-mk-fade-in-up duration-[800ms] delay-[200ms]"
+      class="font-display text-[clamp(2.5rem,5vw,4rem)] font-normal leading-[1.1] tracking-tight text-ink mb-6 animate-fade-in-up duration-[800ms] delay-[200ms]"
     >
-      {titlePrefix}<br /><em class="text-mk-accent italic">{titleEmphasis}</em>
+      {titlePrefix}<br /><em class="text-accent italic">{titleEmphasis}</em>
     </h1>
     <p
-      class="font-mk-body text-[clamp(1rem,1.4vw,1.15rem)] font-light leading-relaxed text-mk-text-secondary max-w-[520px] animate-mk-fade-in-up duration-[800ms] delay-[350ms]"
+      class="font-body text-[clamp(1rem,1.4vw,1.15rem)] font-light leading-relaxed text-ink-secondary max-w-[520px] animate-fade-in-up duration-[800ms] delay-[350ms]"
     >
       {subtitle}
     </p>

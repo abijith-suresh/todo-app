@@ -1,11 +1,11 @@
 import { type Component, For } from "solid-js";
 
-import { TaskCheckbox } from "@/components/primitives/TaskCheckbox";
-import { TaskDeleteButton } from "@/components/primitives/TaskDeleteButton";
-import { TaskTitle } from "@/components/primitives/TaskTitle";
+import { Checkbox } from "@/components/ui/Solid/Checkbox";
+import { DeleteButton } from "@/components/ui/Solid/DeleteButton";
+import { Text } from "@/components/ui/Solid/Text";
 import { createExitAnimation } from "@/lib/exit-animation";
 import { useAppStore } from "@/state/app-store";
-import type { Task } from "@/types";
+import type { Task } from "@/lib/types";
 
 interface DoneTodaySectionProps {
   tasks: Task[];
@@ -55,18 +55,17 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
     >
       <div class="task-inner">
         <div
-          class="group flex items-center gap-3 py-3"
+          class="group flex items-center gap-3 py-3 border-b border-line-subtle"
           classList={{ "task-enter": !exitType() }}
-          style={{ "border-bottom": "1px solid var(--color-border-subtle)" }}
         >
-          <TaskCheckbox
+          <Checkbox
             status="completed"
             ariaLabel={`Reopen ${props.task.title}`}
             onToggle={handleReopen}
             disabled={isExiting()}
           />
-          <TaskTitle title={props.task.title} strikethrough muted />
-          <TaskDeleteButton
+          <Text title={props.task.title} strikethrough muted />
+          <DeleteButton
             ariaLabel={`Delete ${props.task.title}`}
             onDelete={handleDelete}
             disabled={isExiting()}
@@ -79,19 +78,8 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
 
 export const DoneTodaySection: Component<DoneTodaySectionProps> = (props) => (
   <div class="mt-16 sm:mt-20">
-    <div
-      class="mx-auto mb-8 w-24"
-      style={{ "border-top": "1px solid var(--color-border-default)" }}
-    />
-    <p
-      class="mb-6 text-xs italic tracking-wide"
-      style={{
-        color: "var(--color-text-tertiary)",
-        "font-family": '"Source Serif 4", Georgia, serif',
-      }}
-    >
-      Done today
-    </p>
+    <div class="mx-auto mb-8 w-24 border-t border-line" />
+    <p class="mb-6 text-xs italic tracking-wide text-ink-tertiary font-body">Done today</p>
     <div>
       <For each={props.tasks}>
         {(task) => <DoneTodayRow task={task} onReopen={props.onReopen} />}

@@ -12,7 +12,7 @@ import {
 import { getNowIso, getTodayLocalIso, isAfterDays, isSameDay } from "../lib/date";
 import { createId } from "../lib/id";
 import { todoStorage } from "../storage/database";
-import type { SearchResultGroup, Task } from "../types";
+import type { SearchResultGroup, Task } from "../lib/types";
 
 interface AppStore {
   tasks: Accessor<Task[]>;
