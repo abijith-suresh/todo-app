@@ -1,4 +1,4 @@
-import type { Task } from "../lib/types";
+import type { Task, TodoStorage } from "../lib/types";
 
 const DB_NAME = "todo-app-db";
 const DB_VERSION = 1;
@@ -18,12 +18,6 @@ const transactionToPromise = (transaction: IDBTransaction): Promise<void> =>
     transaction.onabort = () =>
       reject(transaction.error ?? new Error("IndexedDB transaction aborted."));
   });
-
-export interface TodoStorage {
-  listTasks(): Promise<Task[]>;
-  saveTask(task: Task): Promise<void>;
-  deleteTask(id: string): Promise<void>;
-}
 
 class IndexedDBTodoStorage implements TodoStorage {
   private dbPromise?: Promise<IDBDatabase>;

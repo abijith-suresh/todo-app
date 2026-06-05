@@ -1,4 +1,5 @@
 ---
+import Button from "@/components/ui/Astro/Button.astro";
 import SectionInner from "@/components/ui/Astro/SectionInner.astro";
 ---
 
@@ -25,12 +26,7 @@ import SectionInner from "@/components/ui/Astro/SectionInner.astro";
       <div
         class="flex justify-end max-lg:justify-start animate-fade-in-up duration-[800ms] delay-[300ms]"
       >
-        <a
-          href="/app"
-          class="inline-flex items-center justify-center px-8 py-[0.9rem] font-body text-[0.9375rem] font-medium rounded-[2px] transition-all duration-300 ease-out cursor-pointer bg-card text-accent shadow-soft hover:bg-[rgba(250,249,246,0.9)] hover:text-accent-hover hover:shadow-medium hover:-translate-y-0.5"
-        >
-          Open the App
-        </a>
+        <Button href="/app" variant="light">Open the App</Button>
       </div>
     </div>
   </SectionInner>

@@ -1,0 +1,23 @@
+---
+import "@/styles/global.css";
+import BaseHead from "@/components/BaseHead.astro";
+
+export interface Props {
+  title: string;
+  description?: string;
+  bodyClass?: string;
+}
+
+const { title, description, bodyClass = "" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={description} />
+    <slot name="head" />
+  </head>
+  <body class={`bg-page text-ink antialiased ${bodyClass}`.trim()}>
+    <slot />
+  </body>
+</html>
