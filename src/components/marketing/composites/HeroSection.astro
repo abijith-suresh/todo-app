@@ -16,24 +16,24 @@ import Button from "@/components/ui/Astro/Button.astro";
     <!-- Text content -->
     <div>
       <p
-        class="font-mk-body text-xs font-medium uppercase tracking-[0.15em] text-mk-accent mb-6 animate-mk-fade-in-up duration-[600ms] delay-[100ms]"
+        class="font-body text-xs font-medium uppercase tracking-[0.15em] text-accent mb-6 animate-fade-in-up duration-[600ms] delay-[100ms]"
       >
         Today&rsquo;s Intentions
       </p>
       <h1
-        class="font-mk-display text-[clamp(3rem,6vw,5.5rem)] font-normal leading-[1.05] tracking-tight text-mk-text mb-6 animate-mk-fade-in-up duration-[800ms] delay-[200ms]"
+        class="font-display text-[clamp(3rem,6vw,5.5rem)] font-normal leading-[1.05] tracking-tight text-ink mb-6 animate-fade-in-up duration-[800ms] delay-[200ms]"
       >
         Today,<br />
-        <em class="text-mk-accent italic">with intention.</em>
+        <em class="text-accent italic">with intention.</em>
       </h1>
       <p
-        class="font-mk-body text-[clamp(1.05rem,1.5vw,1.25rem)] font-light leading-relaxed text-mk-text-secondary max-w-[480px] mb-10 max-lg:mx-auto animate-mk-fade-in-up duration-[800ms] delay-[350ms]"
+        class="font-body text-[clamp(1.05rem,1.5vw,1.25rem)] font-light leading-relaxed text-ink-secondary max-w-[480px] mb-10 max-lg:mx-auto animate-fade-in-up duration-[800ms] delay-[350ms]"
       >
         Not a task manager. Not a planner. Just a quiet desk for the things you want to do today
         &mdash; so you can come back to them when the world quiets down.
       </p>
       <div
-        class="flex gap-4 flex-wrap max-lg:justify-center animate-mk-fade-in-up duration-[800ms] delay-[500ms]"
+        class="flex gap-4 flex-wrap max-lg:justify-center animate-fade-in-up duration-[800ms] delay-[500ms]"
       >
         <Button href="/app" variant="primary">Open the App</Button>
         <Button href="#how-it-works" variant="secondary">See how it works</Button>
@@ -42,17 +42,15 @@ import Button from "@/components/ui/Astro/Button.astro";
 
     <!-- Paper sheet visual -->
     <div
-      class="flex justify-center items-center animate-mk-fade-in-up duration-[1000ms] delay-[400ms]"
+      class="flex justify-center items-center animate-fade-in-up duration-[1000ms] delay-[400ms]"
     >
       <div
-        class="paper-sheet bg-mk-paper w-full max-w-[380px] p-10 shadow-[0_1px_1px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.06),0_24px_48px_rgba(0,0,0,0.04)] rotate-[1deg] max-lg:rotate-0 max-sm:p-6 max-sm:max-w-full"
+        class="paper-sheet bg-card w-full max-w-[380px] p-10 shadow-[0_1px_1px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.06),0_24px_48px_rgba(0,0,0,0.04)] rotate-[1deg] max-lg:rotate-0 max-sm:p-6 max-sm:max-w-full"
       >
-        <div
-          class="flex justify-between items-center mb-8 pl-6 border-b border-mk-border-light pb-4"
-        >
-          <span class="font-mk-body text-xs text-mk-text-muted italic">Monday, June 1</span>
+        <div class="flex justify-between items-center mb-8 pl-6 border-b border-line-subtle pb-4">
+          <span class="font-body text-xs text-ink-tertiary italic">Monday, June 1</span>
           <span
-            class="font-mk-body text-[0.7rem] uppercase tracking-[0.1em] text-mk-text-muted font-medium"
+            class="font-body text-[0.7rem] uppercase tracking-[0.1em] text-ink-tertiary font-medium"
             >Today&rsquo;s Intentions</span
           >
         </div>
@@ -88,12 +86,12 @@ import Button from "@/components/ui/Astro/Button.astro";
 
   /* List item styles */
   .paper-list-item {
-    font-family: var(--font-mk-body);
+    font-family: var(--font-body);
     font-size: 0.95rem;
-    color: var(--color-mk-text);
+    color: var(--color-ink);
     padding: 0.6rem 0;
     position: relative;
-    border-bottom: 1px solid var(--color-mk-border-light);
+    border-bottom: 1px solid var(--color-line-subtle);
     transition: all 0.25s ease;
   }
 
@@ -109,7 +107,7 @@ import Button from "@/components/ui/Astro/Button.astro";
     transform: translateY(-50%);
     width: 10px;
     height: 10px;
-    border: 1.5px solid var(--color-mk-border);
+    border: 1.5px solid var(--color-line);
     border-radius: 2px;
     transition: all 0.25s ease;
   }
@@ -121,14 +119,14 @@ import Button from "@/components/ui/Astro/Button.astro";
   }
 
   .paper-list-item.done {
-    color: var(--color-mk-text-muted);
+    color: var(--color-ink-tertiary);
     text-decoration: line-through;
-    text-decoration-color: var(--color-mk-border);
+    text-decoration-color: var(--color-line);
   }
 
   .paper-list-item.done::before {
-    background: var(--color-mk-accent);
-    border-color: var(--color-mk-accent);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
   }
 
   .paper-list-item.done::after {
@@ -139,8 +137,8 @@ import Button from "@/components/ui/Astro/Button.astro";
     transform: translateY(-60%) rotate(45deg);
     width: 4px;
     height: 7px;
-    border-right: 1.5px solid var(--color-mk-paper);
-    border-bottom: 1.5px solid var(--color-mk-paper);
+    border-right: 1.5px solid var(--color-card);
+    border-bottom: 1.5px solid var(--color-card);
   }
 
   @media (max-width: 600px) {

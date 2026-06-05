@@ -24,18 +24,16 @@ const navItems = [
     <BaseHead title={title} description={description} />
     <ClientRouter fallback="animate" />
   </head>
-  <body
-    class="bg-mk-surface font-mk-body text-mk-text leading-relaxed overflow-x-hidden antialiased"
-  >
+  <body class="bg-page font-body text-ink leading-relaxed overflow-x-hidden antialiased">
     <!-- Fixed Header -->
     <header
       transition:animate="initial"
-      class="fixed inset-x-0 top-0 z-[100] bg-mk-surface/92 backdrop-blur-[12px] border-b border-mk-border-light animate-mk-fade-in"
+      class="fixed inset-x-0 top-0 z-[100] bg-page/92 backdrop-blur-[12px] border-b border-line-subtle animate-fade-in"
     >
       <div
         class="max-w-[1200px] mx-auto px-8 h-16 max-sm:px-5 max-sm:h-14 flex items-center justify-between"
       >
-        <a href="/" class="font-mk-display text-xl text-mk-text tracking-tight">todo-app</a>
+        <a href="/" class="font-display text-xl text-ink tracking-tight">todo-app</a>
         <nav class="flex gap-1 max-sm:gap-[0.1rem] items-center" aria-label="Primary">
           {
             navItems.map((item) => {
@@ -45,10 +43,10 @@ const navItems = [
                 <a
                   href={item.href}
                   class:list={[
-                    "font-mk-body text-sm max-sm:text-[0.8rem] font-normal text-mk-text-secondary px-[0.7rem] max-sm:px-[0.5rem] py-[0.4rem] max-sm:py-[0.3rem] rounded-[2px] transition-all duration-300",
+                    "font-body text-sm max-sm:text-[0.8rem] font-normal text-ink-secondary px-[0.7rem] max-sm:px-[0.5rem] py-[0.4rem] max-sm:py-[0.3rem] rounded-[2px] transition-all duration-300",
                     isCurrent
-                      ? "text-mk-accent bg-[rgba(107,45,58,0.06)] font-medium"
-                      : "hover:text-mk-text hover:bg-mk-warm",
+                      ? "text-accent bg-[rgba(107,45,58,0.06)] font-medium"
+                      : "hover:text-ink hover:bg-warm",
                   ]}
                   aria-current={isCurrent ? "page" : undefined}
                 >
@@ -60,7 +58,7 @@ const navItems = [
         </nav>
         <a
           href="/app"
-          class="font-mk-body text-sm max-sm:text-[0.8rem] font-medium text-mk-accent px-5 max-sm:px-[0.9rem] py-2 max-sm:py-[0.4rem] border border-mk-accent rounded-[2px] transition-all duration-300 hover:bg-mk-accent hover:text-mk-paper"
+          class="font-body text-sm max-sm:text-[0.8rem] font-medium text-accent px-5 max-sm:px-[0.9rem] py-2 max-sm:py-[0.4rem] border border-accent rounded-[2px] transition-all duration-300 hover:bg-accent hover:text-card"
         >
           Open App
         </a>
@@ -72,38 +70,38 @@ const navItems = [
     </main>
 
     <!-- Footer -->
-    <footer class="bg-mk-text text-mk-warm px-8 py-12 max-sm:px-5">
+    <footer class="bg-ink text-warm px-8 py-12 max-sm:px-5">
       <div
         class="max-w-[1200px] mx-auto flex justify-between items-center flex-wrap gap-6 max-sm:flex-col max-sm:text-center"
       >
         <div class="flex flex-col gap-1">
-          <span class="font-mk-display text-[1.1rem] text-mk-paper">todo-app</span>
-          <span class="font-mk-body text-xs text-mk-text-muted tracking-wide">
+          <span class="font-display text-[1.1rem] text-card">todo-app</span>
+          <span class="font-body text-xs text-ink-tertiary tracking-wide">
             A scratchpad for today's intentions.
           </span>
         </div>
         <nav class="flex gap-6 max-sm:flex-wrap max-sm:justify-center" aria-label="Footer">
           <a
             href="/"
-            class="font-mk-body text-[0.8rem] text-mk-text-muted transition-colors duration-300 hover:text-mk-paper"
+            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
           >
             Home
           </a>
           <a
             href="/features"
-            class="font-mk-body text-[0.8rem] text-mk-text-muted transition-colors duration-300 hover:text-mk-paper"
+            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
           >
             Features
           </a>
           <a
             href="/about"
-            class="font-mk-body text-[0.8rem] text-mk-text-muted transition-colors duration-300 hover:text-mk-paper"
+            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
           >
             About
           </a>
           <a
             href="/app"
-            class="font-mk-body text-[0.8rem] text-mk-text-muted transition-colors duration-300 hover:text-mk-paper"
+            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
           >
             App
           </a>
@@ -111,7 +109,7 @@ const navItems = [
         <div>
           <a
             href="/app"
-            class="font-mk-body text-sm font-medium text-mk-paper border-b border-[rgba(250,249,246,0.2)] pb-[0.1rem] transition-all duration-300 hover:border-mk-paper"
+            class="font-body text-sm font-medium text-card border-b border-[rgba(250,249,246,0.2)] pb-[0.1rem] transition-all duration-300 hover:border-card"
           >
             Open the App &rarr;
           </a>
