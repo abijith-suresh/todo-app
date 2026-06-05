@@ -8,12 +8,20 @@ export const getTodayLocalIso = (): string => {
   return `${year}-${month}-${day}`;
 };
 
-export const isSameDay = (isoDate: string, isoDate2: string): boolean =>
-  isoDate.slice(0, 10) === isoDate2.slice(0, 10);
+export const toLocalDateIso = (isoDate: string): string => {
+  const d = new Date(isoDate);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+export const isSameDay = (isoDate: string, localDateStr: string): boolean =>
+  toLocalDateIso(isoDate) === localDateStr;
 
 export const isAfterDays = (isoDate: string, days: number): boolean => {
-  const then = new Date(isoDate.slice(0, 10) + "T00:00:00");
-  const now = new Date();
+  const localDate = toLocalDateIso(isoDate);
+  const then = new Date(`${localDate}T00:00:00`);
   then.setDate(then.getDate() + days);
-  return now >= then;
+  return new Date() >= then;
 };
