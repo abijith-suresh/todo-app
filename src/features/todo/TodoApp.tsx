@@ -2,7 +2,6 @@ import { onCleanup, onMount } from "solid-js";
 
 import { useAppStore } from "@/state/app-store";
 
-import { AppFrame } from "./AppFrame";
 import { AppTaskContent } from "./AppTaskContent";
 import { QuickAdd } from "./QuickAdd";
 import { SearchView } from "./SearchView";
@@ -47,7 +46,7 @@ export default function TodoApp() {
   const searchOpen = () => app.isSearchOpen();
 
   return (
-    <AppFrame>
+    <div class="min-h-screen bg-page text-ink">
       <div
         class="pointer-events-none fixed inset-0 z-0"
         style={{
@@ -88,6 +87,6 @@ export default function TodoApp() {
           </div>
         </div>
       </main>
-    </AppFrame>
+    </div>
   );
 }

@@ -121,12 +121,6 @@ export const SearchView: Component = () => {
           <For each={app.searchResults()}>
             {(group) => {
               const groupTasks = group.tasks;
-              let globalStart = 0;
-              const groups = app.searchResults();
-              for (let g = 0; g < groups.length; g++) {
-                if (groups[g].label === group.label) break;
-                globalStart += groups[g].tasks.length;
-              }
 
               return (
                 <div>
@@ -135,7 +129,7 @@ export const SearchView: Component = () => {
                   </p>
                   <For each={groupTasks}>
                     {(task) => {
-                      const globalIndex = globalStart + groupTasks.indexOf(task);
+                      const globalIndex = flatResults().findIndex((r) => r.taskId === task.id);
                       const isCompleted = group.label === "Completed";
 
                       return (
