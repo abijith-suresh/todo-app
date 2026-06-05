@@ -18,7 +18,7 @@ export const AppTaskContent = () => {
       <TaskList tasks={app.activeTasks()} />
 
       <Show when={app.doneTodayTasks().length > 0}>
-        <DoneTodaySection tasks={app.doneTodayTasks()} onReopen={(id) => void app.reopenTask(id)} />
+        <DoneTodaySection tasks={app.doneTodayTasks()} />
       </Show>
     </Show>
   );
