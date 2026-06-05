@@ -1,6 +1,5 @@
 ---
-import "@/styles/global.css";
-import BaseHead from "@/components/BaseHead.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
 import { ClientRouter } from "astro:transitions";
 
 export interface Props {
@@ -16,105 +15,91 @@ const navItems = [
   { href: "/features", label: "Features" },
   { href: "/about", label: "About" },
 ];
+
+const footerNavItems = [...navItems, { href: "/app", label: "App" }];
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <BaseHead title={title} description={description} />
-    <ClientRouter fallback="animate" />
-  </head>
-  <body class="bg-page font-body text-ink leading-relaxed overflow-x-hidden antialiased">
-    <!-- Fixed Header -->
-    <header
-      transition:animate="initial"
-      class="fixed inset-x-0 top-0 z-[100] bg-page/92 backdrop-blur-[12px] border-b border-line-subtle animate-fade-in"
+<BaseLayout
+  title={title}
+  description={description}
+  bodyClass="font-body leading-relaxed overflow-x-hidden"
+>
+  <ClientRouter slot="head" fallback="animate" />
+  <!-- Fixed Header -->
+  <header
+    transition:animate="initial"
+    class="fixed inset-x-0 top-0 z-[100] bg-page/92 backdrop-blur-[12px] border-b border-line-subtle animate-fade-in"
+  >
+    <div
+      class="max-w-[1200px] mx-auto px-8 h-16 max-sm:px-5 max-sm:h-14 flex items-center justify-between"
     >
-      <div
-        class="max-w-[1200px] mx-auto px-8 h-16 max-sm:px-5 max-sm:h-14 flex items-center justify-between"
+      <a href="/" class="font-display text-xl text-ink tracking-tight">todo-app</a>
+      <nav class="flex gap-1 max-sm:gap-[0.1rem] items-center" aria-label="Primary">
+        {
+          navItems.map((item) => {
+            const isCurrent =
+              pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            return (
+              <a
+                href={item.href}
+                class:list={[
+                  "font-body text-sm max-sm:text-[0.8rem] font-normal text-ink-secondary px-[0.7rem] max-sm:px-[0.5rem] py-[0.4rem] max-sm:py-[0.3rem] rounded-[2px] transition-all duration-300",
+                  isCurrent
+                    ? "text-accent bg-[rgba(107,45,58,0.06)] font-medium"
+                    : "hover:text-ink hover:bg-warm",
+                ]}
+                aria-current={isCurrent ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            );
+          })
+        }
+      </nav>
+      <a
+        href="/app"
+        class="font-body text-sm max-sm:text-[0.8rem] font-medium text-accent px-5 max-sm:px-[0.9rem] py-2 max-sm:py-[0.4rem] border border-accent rounded-[2px] transition-all duration-300 hover:bg-accent hover:text-card"
       >
-        <a href="/" class="font-display text-xl text-ink tracking-tight">todo-app</a>
-        <nav class="flex gap-1 max-sm:gap-[0.1rem] items-center" aria-label="Primary">
-          {
-            navItems.map((item) => {
-              const isCurrent =
-                pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-              return (
-                <a
-                  href={item.href}
-                  class:list={[
-                    "font-body text-sm max-sm:text-[0.8rem] font-normal text-ink-secondary px-[0.7rem] max-sm:px-[0.5rem] py-[0.4rem] max-sm:py-[0.3rem] rounded-[2px] transition-all duration-300",
-                    isCurrent
-                      ? "text-accent bg-[rgba(107,45,58,0.06)] font-medium"
-                      : "hover:text-ink hover:bg-warm",
-                  ]}
-                  aria-current={isCurrent ? "page" : undefined}
-                >
-                  {item.label}
-                </a>
-              );
-            })
-          }
-        </nav>
+        Open App
+      </a>
+    </div>
+  </header>
+
+  <main transition:animate="slide">
+    <slot />
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-ink text-warm px-8 py-12 max-sm:px-5">
+    <div
+      class="max-w-[1200px] mx-auto flex justify-between items-center flex-wrap gap-6 max-sm:flex-col max-sm:text-center"
+    >
+      <div class="flex flex-col gap-1">
+        <span class="font-display text-[1.1rem] text-card">todo-app</span>
+        <span class="font-body text-xs text-ink-tertiary tracking-wide">
+          A scratchpad for today's intentions.
+        </span>
+      </div>
+      <nav class="flex gap-6 max-sm:flex-wrap max-sm:justify-center" aria-label="Footer">
+        {
+          footerNavItems.map((item) => (
+            <a
+              href={item.href}
+              class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+      <div>
         <a
           href="/app"
-          class="font-body text-sm max-sm:text-[0.8rem] font-medium text-accent px-5 max-sm:px-[0.9rem] py-2 max-sm:py-[0.4rem] border border-accent rounded-[2px] transition-all duration-300 hover:bg-accent hover:text-card"
+          class="font-body text-sm font-medium text-card border-b border-[rgba(250,249,246,0.2)] pb-[0.1rem] transition-all duration-300 hover:border-card"
         >
-          Open App
+          Open the App &rarr;
         </a>
       </div>
-    </header>
-
-    <main transition:animate="slide">
-      <slot />
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-ink text-warm px-8 py-12 max-sm:px-5">
-      <div
-        class="max-w-[1200px] mx-auto flex justify-between items-center flex-wrap gap-6 max-sm:flex-col max-sm:text-center"
-      >
-        <div class="flex flex-col gap-1">
-          <span class="font-display text-[1.1rem] text-card">todo-app</span>
-          <span class="font-body text-xs text-ink-tertiary tracking-wide">
-            A scratchpad for today's intentions.
-          </span>
-        </div>
-        <nav class="flex gap-6 max-sm:flex-wrap max-sm:justify-center" aria-label="Footer">
-          <a
-            href="/"
-            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
-          >
-            Home
-          </a>
-          <a
-            href="/features"
-            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
-          >
-            Features
-          </a>
-          <a
-            href="/about"
-            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
-          >
-            About
-          </a>
-          <a
-            href="/app"
-            class="font-body text-[0.8rem] text-ink-tertiary transition-colors duration-300 hover:text-card"
-          >
-            App
-          </a>
-        </nav>
-        <div>
-          <a
-            href="/app"
-            class="font-body text-sm font-medium text-card border-b border-[rgba(250,249,246,0.2)] pb-[0.1rem] transition-all duration-300 hover:border-card"
-          >
-            Open the App &rarr;
-          </a>
-        </div>
-      </div>
-    </footer>
-  </body>
-</html>
+    </div>
+  </footer>
+</BaseLayout>

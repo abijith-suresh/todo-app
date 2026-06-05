@@ -1,6 +1,5 @@
 ---
-import "@/styles/global.css";
-import BaseHead from "@/components/BaseHead.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
 
 export interface Props {
   title: string;
@@ -10,12 +9,6 @@ export interface Props {
 const { title, description } = Astro.props;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <BaseHead title={title} description={description} />
-  </head>
-  <body class="bg-page text-ink antialiased">
-    <slot />
-  </body>
-</html>
+<BaseLayout title={title} description={description}>
+  <slot />
+</BaseLayout>
