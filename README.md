@@ -1,4 +1,4 @@
-# [app-name]
+# todo-app
 
 A lightweight, browser-based capture tool for things you need to remember at work.
 
@@ -13,13 +13,13 @@ Built as a portfolio project. Entirely client-side — no backend, no accounts, 
 - **Astro.js** — framework and routing
 - **Solid.js** — interactive app UI
 - **Tailwind CSS** — styling
-- **localStorage** — all data lives in the browser
+- **IndexedDB** — all data lives in the browser
 
 ## Running locally
 
 ```bash
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 Open `http://localhost:4321` in your browser.

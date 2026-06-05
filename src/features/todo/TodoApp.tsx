@@ -6,12 +6,6 @@ import { AppTaskContent } from "./AppTaskContent";
 import { QuickAdd } from "./QuickAdd";
 import { SearchView } from "./SearchView";
 
-const isEditableTarget = (target: EventTarget | null): boolean => {
-  const element = target as HTMLElement | null;
-  if (!element) return false;
-  return Boolean(element.closest("input, textarea, select, [contenteditable='true']"));
-};
-
 export default function TodoApp() {
   const app = useAppStore();
 
@@ -34,9 +28,6 @@ export default function TodoApp() {
         }
         return;
       }
-
-      if (app.isSearchOpen()) return;
-      if (isEditableTarget(event.target)) return;
     };
 
     window.addEventListener("keydown", onKeyDown);
