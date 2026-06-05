@@ -17,7 +17,6 @@ import type { SearchResultGroup, Task } from "../lib/types";
 interface AppStore {
   tasks: Accessor<Task[]>;
   isHydrated: Accessor<boolean>;
-  focusedTaskId: Accessor<string | null>;
   isSearchOpen: Accessor<boolean>;
   searchQuery: Accessor<string>;
 
@@ -34,12 +33,11 @@ interface AppStore {
   openSearch: () => void;
   closeSearch: () => void;
   setSearchQuery: (query: string) => void;
-  setFocusedTaskId: (id: string | null) => void;
 }
 
 const AppContext = createContext<AppStore>();
 
-const runStateTransitions = (tasks: Task[]): { updated: Task[]; changed: boolean } => {
+export const runStateTransitions = (tasks: Task[]): { updated: Task[]; changed: boolean } => {
   const now = getNowIso();
   let changed = false;
 
@@ -59,7 +57,7 @@ const runStateTransitions = (tasks: Task[]): { updated: Task[]; changed: boolean
   return { updated, changed };
 };
 
-const filterTasksByQuery = (tasks: Task[], query: string): Task[] => {
+export const filterTasksByQuery = (tasks: Task[], query: string): Task[] => {
   if (!query.trim()) return [];
   const lower = query.toLowerCase();
   return tasks.filter((task) => task.title.toLowerCase().includes(lower));
@@ -68,7 +66,6 @@ const filterTasksByQuery = (tasks: Task[], query: string): Task[] => {
 export const AppProvider: ParentComponent = (props) => {
   const [tasks, setTasks] = createSignal<Task[]>([]);
   const [isHydrated, setIsHydrated] = createSignal(false);
-  const [focusedTaskId, setFocusedTaskId] = createSignal<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = createSignal(false);
   const [searchQuery, setSearchQuery] = createSignal("");
 
@@ -274,7 +271,6 @@ export const AppProvider: ParentComponent = (props) => {
   const store: AppStore = {
     tasks,
     isHydrated,
-    focusedTaskId,
     isSearchOpen,
     searchQuery,
     activeTasks,
@@ -289,7 +285,6 @@ export const AppProvider: ParentComponent = (props) => {
     openSearch,
     closeSearch,
     setSearchQuery,
-    setFocusedTaskId,
   };
 
   return <AppContext.Provider value={store}>{props.children}</AppContext.Provider>;

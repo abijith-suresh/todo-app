@@ -9,12 +9,10 @@ import type { Task } from "@/lib/types";
 
 interface DoneTodaySectionProps {
   tasks: Task[];
-  onReopen: (taskId: string) => void;
 }
 
 interface DoneTodayRowProps {
   task: Task;
-  onReopen: (taskId: string) => void;
 }
 
 const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
@@ -23,11 +21,10 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
 
   const handleReopen = (): void => {
     const id = props.task.id;
-    const reopen = props.onReopen;
     startExit(
       "reopen",
       () => {
-        reopen(id);
+        void app.reopenTask(id);
       },
       900
     );
@@ -81,9 +78,7 @@ export const DoneTodaySection: Component<DoneTodaySectionProps> = (props) => (
     <div class="mx-auto mb-8 w-24 border-t border-line" />
     <p class="mb-6 text-xs italic tracking-wide text-ink-tertiary font-body">Done today</p>
     <div>
-      <For each={props.tasks}>
-        {(task) => <DoneTodayRow task={task} onReopen={props.onReopen} />}
-      </For>
+      <For each={props.tasks}>{(task) => <DoneTodayRow task={task} />}</For>
     </div>
   </div>
 );
