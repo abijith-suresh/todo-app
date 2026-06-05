@@ -9,7 +9,7 @@ import {
   useContext,
 } from "solid-js";
 
-import { getNowIso, getTodayLocalIso, isAfterDays, isSameDay } from "../lib/date";
+import { getNowIso, getTodayLocalIso, isOlderThanDays, isSameDay } from "../lib/date";
 import { createId } from "../lib/id";
 import { todoStorage } from "../storage/database";
 import type { SearchResultGroup, Task } from "../lib/types";
@@ -37,12 +37,12 @@ interface AppStore {
 
 const AppContext = createContext<AppStore>();
 
-export const runStateTransitions = (tasks: Task[]): { updated: Task[]; changed: boolean } => {
+export const ageActiveTasks = (tasks: Task[]): { updated: Task[]; changed: boolean } => {
   const now = getNowIso();
   let changed = false;
 
   const updated = tasks.map((task) => {
-    if (task.status === "active" && isAfterDays(task.activatedAt, 7)) {
+    if (task.status === "active" && isOlderThanDays(task.activatedAt, 7)) {
       changed = true;
       return {
         ...task,
@@ -105,7 +105,7 @@ export const AppProvider: ParentComponent = (props) => {
   const loadData = async (): Promise<void> => {
     try {
       const loaded = await todoStorage.listTasks();
-      const { updated, changed } = runStateTransitions(loaded);
+      const { updated, changed } = ageActiveTasks(loaded);
       setTasks(updated);
 
       if (changed) {
@@ -121,7 +121,7 @@ export const AppProvider: ParentComponent = (props) => {
   const handleVisibilityChange = async (): Promise<void> => {
     if (document.visibilityState === "visible") {
       const current = tasks();
-      const { updated, changed } = runStateTransitions(current);
+      const { updated, changed } = ageActiveTasks(current);
       if (changed) {
         setTasks(updated);
         await Promise.all(updated.map((t) => todoStorage.saveTask(t)));

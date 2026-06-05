@@ -2,11 +2,11 @@ import { onCleanup, onMount } from "solid-js";
 
 import { useAppStore } from "@/state/app-store";
 
-import { AppTaskContent } from "./AppTaskContent";
+import { MainTaskView } from "./MainTaskView";
 import { QuickAdd } from "./QuickAdd";
 import { SearchView } from "./SearchView";
 
-export default function TodoApp() {
+export const TodoApp = () => {
   const app = useAppStore();
 
   onMount(() => {
@@ -62,7 +62,7 @@ export default function TodoApp() {
             </h1>
             <QuickAdd />
             <div class="mt-10 sm:mt-14">
-              <AppTaskContent />
+              <MainTaskView />
             </div>
           </div>
 
@@ -80,4 +80,4 @@ export default function TodoApp() {
       </main>
     </div>
   );
-}
+};

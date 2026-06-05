@@ -1,10 +1,10 @@
-import TodoApp from "@/features/todo/TodoApp";
+import { TodoApp } from "@/features/todo/TodoApp";
 import { AppProvider } from "@/state/app-store";
 
-export default function TodoIsland() {
+export const TodoIsland = () => {
   return (
     <AppProvider>
       <TodoApp />
     </AppProvider>
   );
-}
+};
