@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ageActiveTasks, filterTasksByQuery } from "@/state/app-store";
+import { ageActiveTasks, filterTasksByQuery } from "@/lib/task-utils";
 import type { Task } from "@/lib/types";
 
 const makeTask = (overrides: Partial<Task> = {}): Task => ({
