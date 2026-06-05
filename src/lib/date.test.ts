@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getNowIso, getTodayLocalIso, isAfterDays, isSameDay, toLocalDateIso } from "./date";
+import { getNowIso, getTodayLocalIso, isOlderThanDays, isSameDay, toLocalDateIso } from "./date";
 
 describe("getNowIso", () => {
   beforeEach(() => {
@@ -78,7 +78,7 @@ describe("isSameDay", () => {
   });
 });
 
-describe("isAfterDays", () => {
+describe("isOlderThanDays", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -90,17 +90,17 @@ describe("isAfterDays", () => {
 
   it("returns true when activated more than N days ago", () => {
     vi.setSystemTime(new Date("2026-06-15T12:00:00Z"));
-    expect(isAfterDays("2026-06-07T12:00:00Z", 7)).toBe(true);
+    expect(isOlderThanDays("2026-06-07T12:00:00Z", 7)).toBe(true);
   });
 
   it("returns false when activated less than N days ago", () => {
     vi.setSystemTime(new Date("2026-06-15T12:00:00Z"));
-    expect(isAfterDays("2026-06-09T12:00:00Z", 7)).toBe(false);
+    expect(isOlderThanDays("2026-06-09T12:00:00Z", 7)).toBe(false);
   });
 
   it("returns true exactly at 7-day local midnight boundary", () => {
     vi.setSystemTime(new Date("2026-06-15T00:00:00"));
-    expect(isAfterDays("2026-06-08T10:00:00Z", 7)).toBe(true);
+    expect(isOlderThanDays("2026-06-08T10:00:00Z", 7)).toBe(true);
   });
 
   it("uses local timezone for the date boundary", () => {
@@ -110,7 +110,7 @@ describe("isAfterDays", () => {
     vi.setSystemTime(new Date("2026-06-16T00:00:00"));
 
     const activatedAt = "2026-06-08T23:30:00Z";
-    const result = isAfterDays(activatedAt, 7);
+    const result = isOlderThanDays(activatedAt, 7);
 
     expect(result).toBe(true);
 

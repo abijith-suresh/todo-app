@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { filterTasksByQuery, runStateTransitions } from "@/state/app-store";
+import { ageActiveTasks, filterTasksByQuery } from "@/state/app-store";
 import type { Task } from "@/lib/types";
 
 const makeTask = (overrides: Partial<Task> = {}): Task => ({
@@ -14,7 +14,7 @@ const makeTask = (overrides: Partial<Task> = {}): Task => ({
   ...overrides,
 });
 
-describe("runStateTransitions", () => {
+describe("ageActiveTasks", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     process.env.TZ = "UTC";
@@ -28,7 +28,7 @@ describe("runStateTransitions", () => {
   it("active task activated 8 days ago becomes dormant, changed=true", () => {
     vi.setSystemTime(new Date("2026-06-15T12:00:00Z"));
     const task = makeTask({ activatedAt: "2026-06-07T12:00:00Z" });
-    const { updated, changed } = runStateTransitions([task]);
+    const { updated, changed } = ageActiveTasks([task]);
     expect(changed).toBe(true);
     expect(updated[0].status).toBe("dormant");
     expect(updated[0].dormantAt).toBe("2026-06-15T12:00:00.000Z");
@@ -38,7 +38,7 @@ describe("runStateTransitions", () => {
   it("active task activated 5 days ago stays active, changed=false", () => {
     vi.setSystemTime(new Date("2026-06-15T12:00:00Z"));
     const task = makeTask({ activatedAt: "2026-06-10T12:00:00Z" });
-    const { updated, changed } = runStateTransitions([task]);
+    const { updated, changed } = ageActiveTasks([task]);
     expect(changed).toBe(false);
     expect(updated[0].status).toBe("active");
     expect(updated[0].dormantAt).toBeNull();
@@ -47,7 +47,7 @@ describe("runStateTransitions", () => {
   it("active task activated exactly 7 days ago at midnight boundary becomes dormant", () => {
     vi.setSystemTime(new Date("2026-06-15T00:00:00Z"));
     const task = makeTask({ activatedAt: "2026-06-08T00:00:00Z" });
-    const { updated, changed } = runStateTransitions([task]);
+    const { updated, changed } = ageActiveTasks([task]);
     expect(changed).toBe(true);
     expect(updated[0].status).toBe("dormant");
   });
@@ -58,7 +58,7 @@ describe("runStateTransitions", () => {
       status: "dormant",
       dormantAt: "2026-06-10T00:00:00Z",
     });
-    const { updated, changed } = runStateTransitions([task]);
+    const { updated, changed } = ageActiveTasks([task]);
     expect(changed).toBe(false);
     expect(updated[0].status).toBe("dormant");
     expect(updated[0].dormantAt).toBe("2026-06-10T00:00:00Z");
@@ -70,13 +70,13 @@ describe("runStateTransitions", () => {
       status: "completed",
       completedAt: "2026-06-10T00:00:00Z",
     });
-    const { updated, changed } = runStateTransitions([task]);
+    const { updated, changed } = ageActiveTasks([task]);
     expect(changed).toBe(false);
     expect(updated[0].status).toBe("completed");
   });
 
   it("empty tasks list returns empty, changed=false", () => {
-    const { updated, changed } = runStateTransitions([]);
+    const { updated, changed } = ageActiveTasks([]);
     expect(changed).toBe(false);
     expect(updated).toEqual([]);
   });
@@ -84,7 +84,7 @@ describe("runStateTransitions", () => {
   it("task activated same day as now stays active", () => {
     vi.setSystemTime(new Date("2026-06-15T12:00:00Z"));
     const task = makeTask({ activatedAt: "2026-06-15T08:00:00Z" });
-    const { updated, changed } = runStateTransitions([task]);
+    const { updated, changed } = ageActiveTasks([task]);
     expect(changed).toBe(false);
     expect(updated[0].status).toBe("active");
   });
@@ -99,7 +99,7 @@ describe("runStateTransitions", () => {
       id: "young",
       activatedAt: "2026-06-10T12:00:00Z",
     });
-    const { updated, changed } = runStateTransitions([oldTask, youngTask]);
+    const { updated, changed } = ageActiveTasks([oldTask, youngTask]);
     expect(changed).toBe(true);
     expect(updated.find((t) => t.id === "old")?.status).toBe("dormant");
     expect(updated.find((t) => t.id === "young")?.status).toBe("active");

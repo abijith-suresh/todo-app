@@ -25,7 +25,7 @@ export interface TodoStorage {
   deleteTask(id: string): Promise<void>;
 }
 
-class IndexedDbTodoStorage implements TodoStorage {
+class IndexedDBTodoStorage implements TodoStorage {
   private dbPromise?: Promise<IDBDatabase>;
 
   private getDatabase(): Promise<IDBDatabase> {
@@ -77,4 +77,4 @@ class IndexedDbTodoStorage implements TodoStorage {
   }
 }
 
-export const todoStorage: TodoStorage = new IndexedDbTodoStorage();
+export const todoStorage: TodoStorage = new IndexedDBTodoStorage();

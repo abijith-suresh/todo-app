@@ -8,7 +8,7 @@ globalThis.indexedDB = indexedDB;
 
 const DB_NAME = "todo-app-db";
 
-interface IndexedDbTodoStorageWithInternals {
+interface IndexedDBTodoStorageWithInternals {
   getDatabase(): Promise<IDBDatabase>;
   dbPromise: Promise<IDBDatabase> | undefined;
 }
@@ -28,7 +28,7 @@ function createTask(overrides: Partial<Task> = {}): Task {
 }
 
 beforeEach(async () => {
-  const storage = todoStorage as unknown as IndexedDbTodoStorageWithInternals;
+  const storage = todoStorage as unknown as IndexedDBTodoStorageWithInternals;
   const db = await storage.getDatabase().catch(() => null);
   if (db) db.close();
   storage.dbPromise = undefined;

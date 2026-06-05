@@ -5,7 +5,7 @@ import { useAppStore } from "@/state/app-store";
 import { DoneTodaySection } from "./DoneTodaySection";
 import { TaskList } from "./TaskList";
 
-export const AppTaskContent = () => {
+export const MainTaskView = () => {
   const app = useAppStore();
 
   return (
