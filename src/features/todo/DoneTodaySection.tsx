@@ -30,8 +30,7 @@ const DoneTodayRow: Component<DoneTodayRowProps> = (props) => {
     );
   };
 
-  const handleDelete = (event: MouseEvent): void => {
-    event.stopPropagation();
+  const handleDelete = (_event: MouseEvent): void => {
     const id = props.task.id;
     startExit(
       "delete",
