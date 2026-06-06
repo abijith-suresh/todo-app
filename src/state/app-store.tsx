@@ -9,10 +9,11 @@ import {
   useContext,
 } from "solid-js";
 
-import { getNowIso, getTodayLocalIso, isOlderThanDays, isSameDay } from "../lib/date";
+import { getNowIso, getTodayLocalIso, isSameDay } from "../lib/date";
 import { createId } from "../lib/id";
-import { todoStorage } from "../storage/database";
+import { ageActiveTasks, filterTasksByQuery } from "../lib/task-utils";
 import type { SearchResultGroup, Task } from "../lib/types";
+import { todoStorage } from "../storage/database";
 
 interface AppStore {
   tasks: Accessor<Task[]>;
@@ -37,46 +38,44 @@ interface AppStore {
 
 const AppContext = createContext<AppStore>();
 
-export const ageActiveTasks = (tasks: Task[]): { updated: Task[]; changed: boolean } => {
-  const now = getNowIso();
-  let changed = false;
+const persistRollback = async (
+  tasks: Accessor<Task[]>,
+  setTasks: (tasks: Task[]) => void,
+  fn: () => Promise<void>
+): Promise<void> => {
+  const snap = tasks();
+  try {
+    await fn();
+  } catch (error) {
+    console.error(error);
+    setTasks(snap);
+  }
+};
 
-  const updated = tasks.map((task) => {
-    if (task.status === "active" && isOlderThanDays(task.activatedAt, 7)) {
-      changed = true;
-      return {
-        ...task,
-        status: "dormant" as const,
-        dormantAt: now,
-        updatedAt: now,
-      };
-    }
-    return task;
+const mutateTask = (
+  tasks: Accessor<Task[]>,
+  setTasks: (tasks: Task[]) => void,
+  taskId: string,
+  guard: (task: Task) => boolean,
+  transform: (task: Task) => Task,
+  persist: (task: Task) => Promise<void> = (t) => todoStorage.saveTask(t)
+): Promise<void> => {
+  const snap = tasks();
+  const existing = snap.find((t) => t.id === taskId);
+  if (!existing || !guard(existing)) return Promise.resolve();
+
+  const updated = transform(existing);
+  setTasks(snap.map((t) => (t.id === taskId ? updated : t)));
+
+  return persist(updated).catch((error) => {
+    console.error(error);
+    setTasks(snap);
   });
-
-  return { updated, changed };
 };
 
-export const filterTasksByQuery = (tasks: Task[], query: string): Task[] => {
-  if (!query.trim()) return [];
-  const lower = query.toLowerCase();
-  return tasks.filter((task) => task.title.toLowerCase().includes(lower));
-};
-
-export const AppProvider: ParentComponent = (props) => {
-  const [tasks, setTasks] = createSignal<Task[]>([]);
-  const [isHydrated, setIsHydrated] = createSignal(false);
+const createSearchState = (tasks: Accessor<Task[]>) => {
   const [isSearchOpen, setIsSearchOpen] = createSignal(false);
   const [searchQuery, setSearchQuery] = createSignal("");
-
-  const activeTasks = createMemo(() => tasks().filter((t) => t.status === "active"));
-
-  const doneTodayTasks = createMemo(() => {
-    const today = getTodayLocalIso();
-    return tasks().filter(
-      (t) => t.status === "completed" && t.completedAt && isSameDay(t.completedAt, today)
-    );
-  });
 
   const searchResults = createMemo(() => {
     const query = searchQuery();
@@ -100,6 +99,34 @@ export const AppProvider: ParentComponent = (props) => {
     if (dormant.length > 0) groups.push({ label: "Earlier", tasks: dormant });
     if (completed.length > 0) groups.push({ label: "Completed", tasks: completed });
     return groups;
+  });
+
+  const openSearch = (): void => {
+    setSearchQuery("");
+    setIsSearchOpen(true);
+  };
+
+  const closeSearch = (): void => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+  };
+
+  return { isSearchOpen, searchQuery, searchResults, openSearch, closeSearch, setSearchQuery };
+};
+
+export const AppProvider: ParentComponent = (props) => {
+  const [tasks, setTasks] = createSignal<Task[]>([]);
+  const [isHydrated, setIsHydrated] = createSignal(false);
+
+  const search = createSearchState(tasks);
+
+  const activeTasks = createMemo(() => tasks().filter((t) => t.status === "active"));
+
+  const doneTodayTasks = createMemo(() => {
+    const today = getTodayLocalIso();
+    return tasks().filter(
+      (t) => t.status === "completed" && t.completedAt && isSameDay(t.completedAt, today)
+    );
   });
 
   const loadData = async (): Promise<void> => {
@@ -151,140 +178,87 @@ export const AppProvider: ParentComponent = (props) => {
       dormantAt: null,
     };
 
-    const current = tasks();
-    setTasks([task, ...current]);
-
-    try {
+    // eslint-disable-next-line solid/reactivity -- persistRollback is a plain function
+    await persistRollback(tasks, setTasks, async () => {
+      setTasks([task, ...tasks()]);
       await todoStorage.saveTask(task);
-    } catch (error) {
-      console.error(error);
-      setTasks(current);
-    }
+    });
   };
 
-  const updateTaskTitle = async (taskId: string, title: string): Promise<void> => {
-    const trimmed = title.trim();
-    const current = tasks();
-    const existing = current.find((t) => t.id === taskId);
-    if (!existing || !trimmed) return;
+  const updateTaskTitle = (taskId: string, title: string): Promise<void> =>
+    mutateTask(
+      tasks,
+      setTasks,
+      taskId,
+      () => !!title.trim(),
+      (t) => ({
+        ...t,
+        title: title.trim(),
+        updatedAt: getNowIso(),
+      })
+    );
 
-    const updated: Task = { ...existing, title: trimmed, updatedAt: getNowIso() };
-    setTasks(current.map((t) => (t.id === taskId ? updated : t)));
+  const completeTask = (taskId: string): Promise<void> =>
+    mutateTask(
+      tasks,
+      setTasks,
+      taskId,
+      (t) => t.status === "active",
+      (t) => {
+        const now = getNowIso();
+        return { ...t, status: "completed", completedAt: now, updatedAt: now };
+      }
+    );
 
-    try {
-      await todoStorage.saveTask(updated);
-    } catch (error) {
-      console.error(error);
-      setTasks(current);
-    }
-  };
-
-  const completeTask = async (taskId: string): Promise<void> => {
-    const current = tasks();
-    const existing = current.find((t) => t.id === taskId);
-    if (!existing || existing.status !== "active") return;
-
-    const now = getNowIso();
-    const updated: Task = {
-      ...existing,
-      status: "completed",
-      completedAt: now,
-      updatedAt: now,
-    };
-    setTasks(current.map((t) => (t.id === taskId ? updated : t)));
-
-    try {
-      await todoStorage.saveTask(updated);
-    } catch (error) {
-      console.error(error);
-      setTasks(current);
-    }
-  };
-
-  const reopenTask = async (taskId: string): Promise<void> => {
-    const current = tasks();
-    const existing = current.find((t) => t.id === taskId);
-    if (!existing || existing.status !== "completed") return;
-
-    const now = getNowIso();
-    const updated: Task = {
-      ...existing,
-      status: "active",
-      completedAt: null,
-      updatedAt: now,
-    };
-    setTasks(current.map((t) => (t.id === taskId ? updated : t)));
-
-    try {
-      await todoStorage.saveTask(updated);
-    } catch (error) {
-      console.error(error);
-      setTasks(current);
-    }
-  };
+  const reopenTask = (taskId: string): Promise<void> =>
+    mutateTask(
+      tasks,
+      setTasks,
+      taskId,
+      (t) => t.status === "completed",
+      (t) => {
+        const now = getNowIso();
+        return { ...t, status: "active", completedAt: null, updatedAt: now };
+      }
+    );
 
   const deleteTask = async (taskId: string): Promise<void> => {
-    const current = tasks();
-    setTasks(current.filter((t) => t.id !== taskId));
-
-    try {
+    // eslint-disable-next-line solid/reactivity -- persistRollback is a plain function
+    await persistRollback(tasks, setTasks, async () => {
+      setTasks(tasks().filter((t) => t.id !== taskId));
       await todoStorage.deleteTask(taskId);
-    } catch (error) {
-      console.error(error);
-      setTasks(current);
-    }
+    });
   };
 
-  const recoverTask = async (taskId: string): Promise<void> => {
-    const current = tasks();
-    const existing = current.find((t) => t.id === taskId);
-    if (!existing || existing.status !== "dormant") return;
-
-    const now = getNowIso();
-    const updated: Task = {
-      ...existing,
-      status: "active",
-      activatedAt: now,
-      dormantAt: null,
-      updatedAt: now,
-    };
-    setTasks(current.map((t) => (t.id === taskId ? updated : t)));
-
-    try {
-      await todoStorage.saveTask(updated);
-    } catch (error) {
-      console.error(error);
-      setTasks(current);
-    }
-  };
-
-  const openSearch = (): void => {
-    setSearchQuery("");
-    setIsSearchOpen(true);
-  };
-
-  const closeSearch = (): void => {
-    setIsSearchOpen(false);
-    setSearchQuery("");
-  };
+  const recoverTask = (taskId: string): Promise<void> =>
+    mutateTask(
+      tasks,
+      setTasks,
+      taskId,
+      (t) => t.status === "dormant",
+      (t) => {
+        const now = getNowIso();
+        return { ...t, status: "active", activatedAt: now, dormantAt: null, updatedAt: now };
+      }
+    );
 
   const store: AppStore = {
     tasks,
     isHydrated,
-    isSearchOpen,
-    searchQuery,
+    isSearchOpen: search.isSearchOpen,
+    searchQuery: search.searchQuery,
     activeTasks,
     doneTodayTasks,
-    searchResults,
+    searchResults: search.searchResults,
     createTask,
     updateTaskTitle,
     completeTask,
     reopenTask,
     deleteTask,
     recoverTask,
-    openSearch,
-    closeSearch,
-    setSearchQuery,
+    openSearch: search.openSearch,
+    closeSearch: search.closeSearch,
+    setSearchQuery: search.setSearchQuery,
   };
 
   return <AppContext.Provider value={store}>{props.children}</AppContext.Provider>;
