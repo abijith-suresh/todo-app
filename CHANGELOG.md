@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/abijith-suresh/todo-app/compare/v0.3.0...v0.3.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* align marketing with product; remove dead code; extract TrashIcon ([#44](https://github.com/abijith-suresh/todo-app/issues/44)) ([23b2576](https://github.com/abijith-suresh/todo-app/commit/23b257608372bf118c0ce5fb1addfafa7010fde1))
+* normalize date comparisons to local timezone and add test suite ([#50](https://github.com/abijith-suresh/todo-app/issues/50)) ([2148de3](https://github.com/abijith-suresh/todo-app/commit/2148de3237c9a7f15303a9d056fb67cacc6a5f21))
+
 ## [0.3.0](https://github.com/abijith-suresh/todo-app/compare/v0.2.0...v0.3.0) (2026-06-04)
 
 
