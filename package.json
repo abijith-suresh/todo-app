@@ -10,22 +10,18 @@
     "preview": "astro preview",
     "astro": "astro",
     "type-check": "astro sync && tsc --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome check .",
     "test": "vitest run",
     "test:watch": "vitest",
     "verify": "bun run type-check && bun run lint && bun run format:check && bun run test && bun run build",
     "prepare": "test -d .git && husky || true"
   },
   "lint-staged": {
-    "*.{ts,tsx,astro}": [
-      "bunx eslint --fix",
-      "bunx prettier --write"
-    ],
-    "*.{css,html,json,md,yml,yaml}": [
-      "bunx prettier --write"
+    "*.{js,mjs,cjs,jsx,ts,tsx,astro,css,json}": [
+      "bunx biome check --write --no-errors-on-unmatched"
     ]
   },
   "dependencies": {
@@ -34,24 +30,16 @@
     "solid-js": "^1.9.13"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.4",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^21.0.2",
-    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^25.9.1",
-    "eslint": "^10.4.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-astro": "^1.7.0",
-    "eslint-plugin-solid": "^0.14.5",
     "fake-indexeddb": "^6.2.5",
-    "globals": "^17.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
-    "prettier": "^3.8.3",
-    "prettier-plugin-astro": "^0.14.1",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.1",
     "vite": "^7.3.2",
     "vite-plugin-solid": "^2.11.12",
     "vitest": "^4.1.8"

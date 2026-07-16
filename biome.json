@@ -1,0 +1,37 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.4/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": { "includes": ["**", "!**/dist", "!**/.astro", "!src/styles/tokens.css"] },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
+  "linter": {
+    "rules": {
+      "preset": "recommended",
+      "correctness": { "noUnusedVariables": "warn" },
+      "style": { "useConst": "error" },
+      "suspicious": { "noConsole": "warn", "noVar": "error" },
+      "a11y": { "noSvgWithoutTitle": "off" }
+    }
+  },
+  "assist": { "actions": { "source": { "organizeImports": "off" } } },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "es5",
+      "bracketSpacing": true,
+      "arrowParentheses": "always"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.md", "**/*.mdx"],
+      "linter": { "rules": { "a11y": { "useAnchorContent": "off" } } },
+      "assist": { "actions": { "source": { "organizeImports": "off" } } }
+    },
+    {
+      "includes": ["**/*.astro"],
+      "linter": { "rules": { "correctness": { "noUnusedImports": "off" } } },
+      "assist": { "actions": { "source": { "organizeImports": "off" } } }
+    }
+  ]
+}
