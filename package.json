@@ -27,21 +27,21 @@
   "dependencies": {
     "@astrojs/solid-js": "^6.0.1",
     "astro": "^6.4.3",
-    "solid-js": "^1.9.13"
+    "solid-js": "^1.9.14"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
     "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^21.0.2",
-    "@tailwindcss/vite": "^4.3.0",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^25.9.1",
     "fake-indexeddb": "^6.2.5",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
-    "tailwindcss": "^4.3.0",
+    "lint-staged": "^17.0.8",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "^7.3.2",
     "vite-plugin-solid": "^2.11.12",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.10"
   }
 }
