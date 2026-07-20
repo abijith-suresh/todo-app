@@ -34,7 +34,7 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^21.2.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.1",
     "fake-indexeddb": "^6.2.5",
     "husky": "^9.1.7",
     "lint-staged": "^17.1.0",
