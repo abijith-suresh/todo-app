@@ -30,14 +30,14 @@
     "solid-js": "^1.9.14"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.6",
+    "@biomejs/biome": "^2.5.7",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.1.2",
     "fake-indexeddb": "^6.2.5",
     "husky": "^9.1.7",
-    "lint-staged": "^17.2.0",
+    "lint-staged": "^17.3.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^7.3.3",
