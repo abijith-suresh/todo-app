@@ -26,22 +26,22 @@
   },
   "dependencies": {
     "@astrojs/solid-js": "^7.0.1",
-    "astro": "^7.1.6",
-    "solid-js": "^1.9.14"
+    "astro": "^7.2.4",
+    "solid-js": "^1.9.15"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.6",
-    "@commitlint/cli": "^21.2.1",
-    "@commitlint/config-conventional": "^21.2.0",
+    "@biomejs/biome": "^2.5.9",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "fake-indexeddb": "^6.2.5",
     "husky": "^9.1.7",
-    "lint-staged": "^17.2.0",
+    "lint-staged": "^17.3.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^7.3.3",
     "vite-plugin-solid": "^2.11.14",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
