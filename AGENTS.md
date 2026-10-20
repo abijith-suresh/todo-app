@@ -16,14 +16,6 @@ Non-negotiables:
 
 Status: dormant — portfolio project; no active feature work, but keep it building.
 
-## How I Work Here
-
-- Verification: run `bun run verify` before handoff and add focused tests for behavior you change. CI is the backstop.
-- Commits: Conventional Commits; types live in `commitlint.config.ts`. Squash merges; never commit to main.
-- Pull requests: one focused change per PR. Open it and leave merging to the owner.
-- Package manager: Bun. Do not add npm or pnpm lockfiles.
-- Releases: release-please owns versions and `CHANGELOG.md`; do not hand-edit either.
-
 ## Sources of Truth
 
 | Fact | Where |
@@ -31,6 +23,6 @@ Status: dormant — portfolio project; no active feature work, but keep it build
 | Product intent | § The Project (this file) |
 | Runtime behavior | code + tests |
 | Commands & deps | `package.json` |
-| Commit rules | `commitlint.config.ts` |
+| How to work here | `CONTRIBUTING.md` |
 
 Code and tests are the authority; this file never overrides executable truth.
