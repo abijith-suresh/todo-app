@@ -4,23 +4,36 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: quality
-    uses: abijith-suresh/workflows/.github/workflows/bun-quality.yml@9c9e55ab629eafe5b5edbae9857b1d66fb384f8c # v0.8.1
+  ci:
+    name: CI
     permissions:
       contents: read
+    uses: abijith-suresh/workflows/.github/workflows/bun-quality.yml@c299f85c6c0c73fff9b2a1e420484f5bdb482ff1 # v0.9.0
 
   dependency-review:
     name: dependency-review
-    uses: abijith-suresh/workflows/.github/workflows/dependency-review.yml@9c9e55ab629eafe5b5edbae9857b1d66fb384f8c # v0.8.1
     permissions:
       contents: read
+    uses: abijith-suresh/workflows/.github/workflows/dependency-review.yml@c299f85c6c0c73fff9b2a1e420484f5bdb482ff1 # v0.9.0
+
+  # Repository-local jobs go here; add each one to the gate's needs.
+
+  gate:
+    name: gate
+    if: ${{ !cancelled() }}
+    needs: [ci, dependency-review]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require every job to succeed
+        uses: abijith-suresh/workflows/.github/actions/gate@c299f85c6c0c73fff9b2a1e420484f5bdb482ff1 # v0.9.0
+        with:
+          needs: ${{ toJSON(needs) }}
