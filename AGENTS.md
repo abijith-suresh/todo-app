@@ -1,40 +1,28 @@
-# Agent Context
+# todo-app — agent brief
 
-This is a client-side web app built with Astro.js, Solid.js, and Tailwind CSS.
-There is no backend, no server, no database, and no accounts. All data is stored in localStorage.
+A lightweight, browser-based capture tool for small things you need to remember at work. Not a task manager: you add something, get back to what you were doing, and old items fade out on their own after 7 days. Built as a portfolio project, entirely client-side.
 
-## Stack
+## The Project
 
-| Tool         | Role                          |
-| ------------ | ----------------------------- |
-| Astro.js     | Framework and routing         |
-| Solid.js     | Interactive UI (`/app` route) |
-| Tailwind CSS | Styling                       |
-| localStorage | All persistent data           |
+Core promise: capture fast and keep the view small. This is a short-term holding area, not a system of record; a full task manager is the wrong tool for these items.
 
-## Repo structure
+Non-negotiables:
 
-```
-src/
-  pages/        — Astro pages (marketing routes + /app)
-  components/   — Shared Astro components
-  islands/      — Solid.js interactive components
-  styles/       — Global styles
-docs/
-  PRODUCT.md    — What this is, philosophy, user stories, non-goals
-  SPEC.md       — Behavioral spec: item model, states, workflows, UI rules
-  DECISIONS.md  — Technical decisions and reasoning
-```
+- Aging is automatic after 7 days. The window is fixed, not a setting.
+- Fading never destroys anything: older items remain searchable and recoverable.
+- No counts, dashboards, streaks, or scores. The interface stays calm.
+- No backend, accounts, sync, or analytics. Data stays in the browser.
+- Out of scope by design: projects, tags, priorities, due dates, reminders, recurring items, notes, attachments, collaboration.
 
-## Key constraints
+Status: dormant — portfolio project; no active feature work, but keep it building.
 
-- No backend. No API calls. No accounts. No sync.
-- All app state lives in localStorage.
-- The `/app` route is a Solid.js island inside an Astro shell page.
-- The marketing routes (`/`, `/about`, `/features`) are static Astro pages.
+## Sources of Truth
 
-## Before making changes
+| Fact | Where |
+|---|---|
+| Product intent | § The Project (this file) |
+| Runtime behavior | code + tests |
+| Commands & deps | `package.json` |
+| How to work here | `CONTRIBUTING.md` |
 
-- Read **[docs/SPEC.md](docs/SPEC.md)** before touching any app logic — it is the behavioral contract.
-- Read **[docs/PRODUCT.md](docs/PRODUCT.md)** if a change affects product scope or philosophy.
-- Read **[docs/DECISIONS.md](docs/DECISIONS.md)** if a change involves the tech stack or a previously decided design choice.
+Code and tests are the authority; this file never overrides executable truth.

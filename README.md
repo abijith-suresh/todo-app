@@ -26,6 +26,4 @@ Open `http://localhost:4321` in your browser.
 
 ## Docs
 
-- [Product](docs/PRODUCT.md) — what this is and why it exists
-- [Spec](docs/SPEC.md) — how the app behaves
-- [Decisions](docs/DECISIONS.md) — technical choices and reasoning
+- [Agent brief](AGENTS.md) — product intent, behavioral contract, and codebase map
